@@ -14,6 +14,11 @@ let conn = {
 }
 
 let author = 'Itsuki-IA'
+let sgc = 'https://instagram.com'
+let sig = 'https://instagram.com'
+let sfb = 'https://facebook.com'
+let snh = 'https://tiktok.com'
+let syt = 'https://youtube.com'
 
 global.docs = ['doc1', 'doc2', 'doc3']
 global.nomorown = '573187418668@s.whatsapp.net'
@@ -76,13 +81,11 @@ try {
   ]
   global.pppkecil = AraChu2.getRandom()
   global.ucapan = ucapan()
-
-  // TODO CON rcanal
   global.ppkecil = {
     contextInfo: {
       externalAdReply: {
         showAdAttribution: false,
-        title: "𝆺𝅥 𝆭 ִ ֗ 🍉 𝐈𝐭𝐬𝐮𝐤𝐢 ┆ 𝐍𝐚𝐤𝐚𝐧𝐨𝐯2 𝐏𝐫𝐞𝐦𝐁𝐨𝐭 ✨ ౨ৎ˚₊‧",
+        title: global.namechannel,
         body: global.author,
         thumbnail: fs.readFileSync("./src/Images/thumbnail.jpg"),
         thumbnailUrl: global.pppkecil,
@@ -93,17 +96,107 @@ try {
     }
   }
 
-  global.adReplyS = global.rcanal
+  global.adReplyS = {
+    fileLength: SizeDoc(),
+    seconds: SizeDoc(),
+    contextInfo: {
+      forwardingScore: SizeDoc(),
+      externalAdReply: {
+        containsAutoReply: true,
+        showAdAttribution: false,
+        title: "👋 " + Sapa() + Pagi(),
+        body: author,
+        mediaUrl: sgc,
+        description: global.namechannel,
+        previewType: "PHOTO",
+        thumbnail: fs.readFileSync("./src/Images/55111188_p0.jpg"),
+        sourceUrl: "https://whatsapp.com/channel/0029VbBQ5sf4NVioq39Efn0v",
+      }
+    }
+  }
 
-  global.adReply = global.rcanal
+  global.adReply = {
+    fileLength: SizeDoc(),
+    seconds: SizeDoc(),
+    contextInfo: {
+      forwardingScore: SizeDoc(),
+      externalAdReply: {
+        body: author,
+        containsAutoReply: true,
+        mediaType: 1,
+        mediaUrl: sgc,
+        renderLargerThumbnail: false,
+        showAdAttribution: false,
+        sourceId: global.namechannel,
+        sourceType: "PDF",
+        previewType: "PDF",
+        sourceUrl: sgc,
+        thumbnail: fs.readFileSync("./src/Images/55111188_p0.jpg"),
+        thumbnailUrl: global.icono,
+        title: "👋 " + Sapa() + Pagi()
+      }
+    }
+  }
 
-  global.fakeig = global.rcanal
+  global.fakeig = {
+    contextInfo: {
+      externalAdReply: {
+        showAdAttribution: false,
+        mediaUrl: sig,
+        mediaType: "VIDEO",
+        description: "Sigue: " + sig,
+        title: "👋 " + Sapa() + Pagi(),
+        body: author,
+        thumbnailUrl: global.icono,
+        sourceUrl: sgc
+      }
+    }
+  }
 
-  global.fakefb = global.rcanal
+  global.fakefb = {
+    contextInfo: {
+      externalAdReply: {
+        showAdAttribution: false,
+        mediaUrl: sfb,
+        mediaType: "VIDEO",
+        description: "Sigue: " + sig,
+        title: "👋 " + Sapa() + Pagi(),
+        body: author,
+        thumbnailUrl: global.icono,
+        sourceUrl: sgc
+      }
+    }
+  }
 
-  global.faketik = global.rcanal
+  global.faketik = {
+    contextInfo: {
+      externalAdReply: {
+        showAdAttribution: false,
+        mediaUrl: snh,
+        mediaType: "VIDEO",
+        description: "Sigue: " + sig,
+        title: "👋 " + Sapa() + Pagi(),
+        body: author,
+        thumbnailUrl: global.icono,
+        sourceUrl: snh
+      }
+    }
+  }
 
-  global.fakeyt = global.rcanal
+  global.fakeyt = {
+    contextInfo: {
+      externalAdReply: {
+        showAdAttribution: false,
+        mediaUrl: syt,
+        mediaType: "VIDEO",
+        description: "Sigue: " + sig,
+        title: "👋 " + Sapa() + Pagi(),
+        body: author,
+        thumbnailUrl: global.icono,
+        sourceUrl: syt
+      }
+    }
+  }
 
   global.metaai = {
     key: {
@@ -124,13 +217,11 @@ try {
     participant: "0@s.whatsapp.net"
   }
 
-  global.botname = global.botname || namechannel
-
-  // SOLO rcanal
+  // Usando global.icono en lugar de AraChu2
   global.rcanal = {
     contextInfo: {
       externalAdReply: {
-        title: global.botname,
+        title: global.namechannel,
         mediaType: 1,
         previewType: "PHOTO",
         thumbnailUrl: global.icono,
@@ -139,17 +230,121 @@ try {
     }
   }
 
-  global.rcanalw = global.rcanal
+  global.rcanalw = {
+    contextInfo: {
+      isForwarded: true,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: idchannel,
+        serverMessageId: 100,
+        newsletterName: namechannel,
+      },
+      externalAdReply: {
+        title: global.namechannel,
+        body: '',
+        mediaUrl: null,
+        description: null,
+        previewType: "PHOTO",
+        thumbnailUrl: global.icono,
+        mediaType: 1,
+        renderLargerThumbnail: false,
+      },
+    },
+  }
 
-  global.rcanalden2 = global.rcanal
+  global.rcanalden2 = {
+    contextInfo: {
+      isForwarded: true,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: idchannel,
+        serverMessageId: 100,
+        newsletterName: namechannel,
+      },
+    },
+  }
 
-  global.rcanalx = global.rcanal
+  global.rcanalx = {
+    contextInfo: {
+      isForwarded: true,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: idchannel,
+        serverMessageId: 100,
+        newsletterName: namechannel,
+      },
+      externalAdReply: {
+        title: global.namechannel,
+        body: '',
+        mediaUrl: null,
+        description: null,
+        previewType: "PHOTO",
+        thumbnailUrl: global.icono,
+        mediaType: 1,
+        renderLargerThumbnail: false,
+      },
+    },
+  }
 
-  global.rcanalr = global.rcanal
+  global.rcanalr = {
+    contextInfo: {
+      isForwarded: true,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: idchannel,
+        serverMessageId: 100,
+        newsletterName: namechannel,
+      },
+      externalAdReply: {
+        title: global.namechannel,
+        body: '',
+        mediaUrl: null,
+        description: null,
+        previewType: "PHOTO",
+        thumbnailUrl: global.icono,
+        mediaType: 1,
+        renderLargerThumbnail: false,
+      },
+    },
+  }
 
-  global.rcanalden = global.rcanal
+  global.rcanalden = {
+    contextInfo: {
+      isForwarded: true,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: idchannel,
+        serverMessageId: 100,
+        newsletterName: namechannel,
+      },
+      externalAdReply: {
+        title: '🔓 𝗔𝗰𝗰𝘀𝗲𝘀𝗼 𝗡𝗼 𝗣𝗲𝗿𝗺𝗶𝘁𝗶𝗱𝗼',
+        body: '',
+        mediaUrl: null,
+        description: null,
+        previewType: "PHOTO",
+        thumbnailUrl: global.icono,
+        mediaType: 1,
+        renderLargerThumbnail: false,
+      },
+    },
+  }
 
-  global.rcanaldev = global.rcanal
+  global.rcanaldev = {
+    contextInfo: {
+      isForwarded: true,
+      forwardedNewsletterMessageInfo: {
+        newsletterJid: idchannel,
+        serverMessageId: 100,
+        newsletterName: namechannel,
+      },
+      externalAdReply: {
+        title: '🛠️ 𝗗𝗲𝘃',
+        body: '',
+        mediaUrl: null,
+        description: null,
+        previewType: 'PHOTO',
+        thumbnailUrl: global.icono,
+        mediaType: 1,
+        renderLargerThumbnail: false,
+      },
+    },
+  }
 
   global.fakes = Fakes()
 
