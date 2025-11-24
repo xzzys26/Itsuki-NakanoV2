@@ -18,7 +18,7 @@ global.año = d.toLocaleDateString('es', {year: 'numeric'})
 global.tiempo = d.toLocaleString('en-US', {hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true})
 
 var canal = 'https://whatsapp.com/channel/0029VbBBXTr5fM5flFaxsO06'  
-var comunidad = 'https://chat.whatsapp.com/BXxWuamOOE4K9eKC623FIO'
+// var comunidad = 'https://chat.whatsapp.com/BXxWuamOOE4K9eKC623FIO'
 var git = 'https://github.com/leoxito'
 var github = 'https://github.com/leoxito/Itsuki-NakanoV2'
 var correo = 'xzzysultra@gmail.com'
@@ -27,12 +27,25 @@ global.redes = [canal, comunidad, git, github, correo].getRandom()
 global.nombre = m.pushName || 'User-MD'
 global.packsticker = ``
 
-// Añadido global.icono
-global.icono = 'https://files.catbox.moe/ncb958.jpg'
-  
+// Todas las imágenes en orden
+global.iconos = [
+  'https://cdn.russellxz.click/a015cecd.jpg',
+  'https://cdn.russellxz.click/d112a400.jpg',
+  'https://cdn.russellxz.click/40fb346f.jpg',
+  'https://cdn.russellxz.click/d8cefbd9.jpg',
+  'https://cdn.russellxz.click/1d6aa06f.jpg',
+  'https://cdn.russellxz.click/8df6a43c.jpg',
+  'https://cdn.russellxz.click/0d27e894.jpg',
+  'https://cdn.russellxz.click/98e7e0df.jpg',
+  'https://cdn.russellxz.click/b262e815.jpg',
+  'https://cdn.russellxz.click/f46d62d3.jpg',
+  'https://cdn.russellxz.click/36caddb4.jpg'
+]
+global.icono = global.iconos[Math.floor(Math.random() * global.iconos.length)]
+
 global.fkontak = { key: { participants:"0@s.whatsapp.net", "remoteJid": "status@broadcast", "fromMe": false, "id": "Halo" }, "message": { "contactMessage": { "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` }}, "participant": "0@s.whatsapp.net" }
 
-// Adaptado rcanal para usar global.icono
+// Adaptado rcanal para usar global.icono random
 global.rcanal = { 
   contextInfo: { 
     isForwarded: true, 
@@ -47,7 +60,7 @@ global.rcanal = {
       mediaUrl: null, 
       description: null, 
       previewType: "PHOTO", 
-      thumbnailUrl: global.icono, // Usando global.icono
+      thumbnailUrl: global.icono, // Usando global.icono random
       sourceUrl: redes, 
       mediaType: 1, 
       renderLargerThumbnail: false 
