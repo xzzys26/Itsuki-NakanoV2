@@ -44,19 +44,15 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
     let txt = `> 🎄 *¡INFORMACIÓN DE LA APK!* 🎅
 
 > 📱 *Nombre:*
-\`\`\`${data5.name}\`\`\`
-
+> \`\`\`${data5.name}\`\`\`
 > 📦 *Package:*
-\`\`\`${data5.package}\`\`\`
-
+> \`\`\`${data5.package}\`\`\`
 > 📅 *Última actualización:*
-\`\`\`${data5.lastup}\`\`\`
-
+> \`\`\`${data5.lastup}\`\`\`
 > 💾 *Tamaño:*
 \`\`\`${data5.size}\`\`\`
-
 > 📥 *Estado:*
-\`\`\`Preparando descarga navideña...\`\`\`
+> \`\`\`Preparando descarga navideña...\`\`\`
 
 > 🎅 *¡Itsuki Nakano V3 - Tu asistente navideño!* 🎄`
 
@@ -99,14 +95,11 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
         caption: `> 🎄 *¡APK DESCARGADA!* 🎅
 
 > 📱 *Aplicación:*
-\`\`\`${data5.name}\`\`\`
-
+> \`\`\`${data5.name}\`\`\`
 > 📦 *Package:*
-\`\`\`${data5.package}\`\`\`
-
+> \`\`\`${data5.package}\`\`\`
 > 💾 *Tamaño:*
-\`\`\`${data5.size}\`\`\`
-
+> \`\`\`${data5.size}\`\`\`
 > 🎅 *¡Disfruta tu aplicación navideña!*
 > 🎄 *¡Feliz Navidad con Itsuki Nakano V3!* 🎁`,
         ...(thumbnail ? { jpegThumbnail: thumbnail } : {})
