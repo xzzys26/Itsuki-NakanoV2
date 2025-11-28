@@ -1,8 +1,7 @@
-// Menú Oficial Versión V2 PremBot 🌸‼️
-
 import { existsSync } from 'fs'
 import { join } from 'path'
 import { prepareWAMessageMedia, generateWAMessageFromContent, proto } from '@whiskeysockets/baileys'
+import { performance } from 'perf_hooks'
 
 let handler = async (m, { conn, usedPrefix: _p }) => {
   try {
@@ -13,10 +12,25 @@ let handler = async (m, { conn, usedPrefix: _p }) => {
         tags: Array.isArray(p.tags) ? p.tags : p.tags ? [p.tags] : [],
       }))
 
-    let menuText = `> Ꮺׄ ㅤდㅤ   *ɪᴛsᴜᴋɪ* ㅤ 𖹭𑩙
-> ୨ㅤ   ֵ      *݊ɴᴀᴋᴀɴᴏV2* ㅤ ׄㅤ  ꨄ︎
+    // Calcular ping
+    let old = performance.now()
+    await conn.sendMessage(m.chat, { text: 'Testing ping...' })
+    let neww = performance.now()
+    let speed = (neww - old).toFixed(4)
 
-`
+    let menuText = `> ﹒⌗﹒👋🏻 .ৎ˚₊‧  Hola, @${m.sender.split('@')[0]} Pasa Feliz Navidad ❄️.
+
+> 𐚁 ֹ ִ \`I N F O - B O T\` ! ୧ ֹ    
+
+> 🤖 \`bot :\` soy Itsuki NakanoV3
+> 📡 \`Ping :\` ${speed} ms
+> ⏱️ \`Uptime :\` [ ${await getUptime()} ]
+> 💾 \`RAM :\` ${(process.memoryUsage().rss / 1024 / 1024).toFixed(2)} MB
+> 📚 \`Plugins :\` ${help.length}
+> 👑 \`Owner :\` @leoDev
+> 🌐 \`Mode :\` ${global.opts['self'] ? 'Private' : 'Public'}
+> 🔧 \`Platform :\` ${process.platform}
+> 📦 \`Node.js :\` ${process.version}
 
     const categories = {
       '*NAKANO-INFO*': ['main', 'info'],
@@ -113,6 +127,15 @@ let handler = async (m, { conn, usedPrefix: _p }) => {
       text: `🍙 *ITSUNI MENÚ BÁSICO*\n\n• ${_p}menu - Menú principal\n• ${_p}ping - Estado del bot\n• ${_p}prefijos - Ver prefijos\n\n⚠️ *Error:* ${e.message}`
     }, { quoted: m })
   }
+}
+
+// Función para obtener uptime
+function getUptime() {
+  let totalSeconds = process.uptime()
+  let hours = Math.floor(totalSeconds / 3600)
+  let minutes = Math.floor((totalSeconds % 3600) / 60)
+  let seconds = Math.floor(totalSeconds % 60)
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
 handler.help = ['menu','help']
