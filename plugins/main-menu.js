@@ -29,8 +29,8 @@ let handler = async (m, { conn, usedPrefix: _p }) => {
 > 📚 \`Plugins :\` ${help.length}
 > 👑 \`Owner :\` @leoDev
 > 🌐 \`Mode :\` ${global.opts['self'] ? 'Private' : 'Public'}
-> 🔧 \`Platform :\` ${process.platform}
-> 📦 \`Node.js :\` ${process.version}
+
+`
 
     const categories = {
       '*NAKANO-INFO*': ['main', 'info'],
@@ -130,7 +130,7 @@ let handler = async (m, { conn, usedPrefix: _p }) => {
 }
 
 // Función para obtener uptime
-function getUptime() {
+async function getUptime() {
   let totalSeconds = process.uptime()
   let hours = Math.floor(totalSeconds / 3600)
   let minutes = Math.floor((totalSeconds % 3600) / 60)
@@ -141,9 +141,5 @@ function getUptime() {
 handler.help = ['menu','help']
 handler.tags = ['main']
 handler.command = ['itsuki', 'menu', 'help']
-
-handler.before = async function (m, { conn }) {
-
-}
 
 export default handler
