@@ -6,7 +6,7 @@ let handler = async (m, { conn }) => {
     const start = Date.now()
 
     // Enviar un mensaje de prueba para medir ping
-    await conn.sendMessage(m.chat, { text: '⚡️' }, { quoted: m })
+        await conn.sendMessage(m.chat, { react: { text: '⚡️', key: m.key } })
 
     // Tiempo final DESPUÉS de enviar mensaje
     const end = Date.now()
