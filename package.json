@@ -33,6 +33,7 @@
     "yt-search": "^2.10.3",
     "ytdl-core": "^4.11.5",
     "fluent-ffmpeg": "^2.1.2",
+    "file-type": "^18.7.0",
     "tough-cookie": "^4.1.4",
     "form-data": "^4.0.0",
     "sharp": "^0.34.4",
