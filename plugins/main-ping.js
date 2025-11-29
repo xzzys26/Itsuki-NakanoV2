@@ -33,9 +33,9 @@ let handler = async (m, { conn }) => {
     // Mensaje del ping
     const pingMessage = `
 
-\`Ping :\` ${ping} ms
-\`Velocidad :\` ${speed}
-\`Estado :\` ${status}`
+\`Ping :\` *${ping} ms*
+\`Velocidad :\` *${speed}*
+\`Estado :\` *${status}*`
 
     // Enviar resultado
     await conn.reply(m.chat, pingMessage, m)
