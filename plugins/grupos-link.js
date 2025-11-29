@@ -16,7 +16,7 @@ let handler = async (m, { conn, isBotAdmin }) => {
         message: {
           interactiveMessage: proto.Message.InteractiveMessage.create({
             body: proto.Message.InteractiveMessage.Body.create({
-              text: "> *ⓘ `Enlace del grupo*`\n\n"
+              text: "> ⓘ `Enlace del grupo`\n\n"
             }),
             footer: proto.Message.InteractiveMessage.Footer.create({ 
               text: "ᴘᴜʟsᴀ ᴇʟ ʙᴏᴛᴏɴ ᴘᴀʀᴀ ᴄᴏᴘɪᴀʀ" 
