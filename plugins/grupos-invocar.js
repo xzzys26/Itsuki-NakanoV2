@@ -17,9 +17,9 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args, co
   let teks = `
 ╭━━━〔 *🌸 INVOCACIÓN GENERAL 🌸* 〕━━━⬣
 ┃ ${oi}
-┃ > ⓘ \`Miembros totales:\` *${participants.length}*
-┃ > ⓘ \`Ejecutado por:\` *@${m.sender.split('@')[0]}*
-┃ > ⓘ \`ID del ejecutor:\` *${m.sender}*
+┃ ⓘ \`Miembros totales:\` *${participants.length}*
+┃ ⓘ \`Ejecutado por:\` *@${m.sender.split('@')[0]}*
+┃ ⓘ \`ID del ejecutor:\` *${m.sender}*
 ╰━━━━━━━━━━━━━━━━━━━━━━━━⬣
 
 ╭━━━〔 *📌 USUARIOS ETIQUETADOS 📌* 〕━━━⬣
@@ -30,7 +30,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args, co
   
   for (const mem of participants) {
     const userId = mem.id.split('@')[0];
-    teks += `┃ > ⓘ \`@${userId}\`\n`;
+    teks += `┃ ⓘ \`@${userId}\`\n`;
     mentions.push(mem.id); // Agregar el ID completo para la mención
   }
 
