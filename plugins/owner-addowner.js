@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath, pathToFileURL } from 'url'
+import fetch from 'node-fetch'
 
 async function makeFkontak() {
   try {
@@ -37,7 +38,6 @@ async function appendOwnerToConfig(configPath, number, name, isRoot = false) {
     const arrStart = src.indexOf('[', eqIdx)
     if (arrStart === -1) throw new Error('No se encontró inicio de array de owner')
 
-    // Buscar el cierre correspondiente del array con conteo de corchetes, ignorando strings
     let i = arrStart
     let depth = 0
     let inS = false, inD = false, inB = false, esc = false
@@ -60,7 +60,6 @@ async function appendOwnerToConfig(configPath, number, name, isRoot = false) {
     const inside = src.slice(arrStart + 1, arrEnd)
     const hasItems = /[^\s]/.test(inside)
 
-    // Buscar el último char no espacio antes de arrEnd para decidir coma previa
     let j = arrEnd - 1
     while (j > arrStart && /\s/.test(src[j])) j--
     const prevChar = src[j] || ''
@@ -80,78 +79,189 @@ async function appendOwnerToConfig(configPath, number, name, isRoot = false) {
   }
 }
 
-const handler = async (m, { conn, text, participants, parseUserTargets, getUserInfo }) => {
-  const ctxOk = (typeof global.rcanalr === 'object') ? global.rcanalr : {}
-  const ctxInfo = (typeof global.rcanalx === 'object') ? global.rcanalx : {}
-  const ctxErr = (typeof global.rcanalden === 'object') ? global.rcanalden : {}
+function parseUserTargets(input, options = {}) {
+    try {
+        if (!input || input.trim() === '') return [];
 
+        const defaults = {
+            allowLids: true,
+            resolveMentions: true,
+            groupJid: null,
+            maxTargets: 50
+        };
+        const opts = { ...defaults, ...options };
+
+        if (Array.isArray(input)) {
+            return input.map(jid => normalizeJid(jid)).filter(jid => jid);
+        }
+
+        if (typeof input === 'string') {
+            let targets = [];
+            const textTargets = input.split(/[,;\s\n]+/).map(item => item.trim()).filter(item => item);
+
+            for (let item of textTargets) {
+                if (item.startsWith('@')) {
+                    const num = item.substring(1);
+                    if (num) {
+                        const jid = `${num}@s.whatsapp.net`;
+                        targets.push(jid);
+                    }
+                    continue;
+                }
+
+                if (/^[\d+][\d\s\-()]+$/.test(item)) {
+                    const cleanNum = item.replace(/[^\d+]/g, '');
+                    if (cleanNum.length >= 8) {
+                        const jid = `${cleanNum.replace(/^\+/, '')}@s.whatsapp.net`;
+                        targets.push(jid);
+                    }
+                    continue;
+                }
+
+                if (item.includes('@')) {
+                    targets.push(normalizeJid(item));
+                    continue;
+                }
+
+                if (/^\d+$/.test(item) && item.length >= 8) {
+                    targets.push(`${item}@s.whatsapp.net`);
+                }
+            }
+
+            targets = [...new Set(targets.map(jid => normalizeJid(jid)).filter(jid => jid))];
+
+            if (opts.maxTargets && targets.length > opts.maxTargets) {
+                targets = targets.slice(0, opts.maxTargets);
+            }
+
+            return targets;
+        }
+
+        return [];
+    } catch (error) {
+        console.error('Error en parseUserTargets:', error);
+        return [];
+    }
+}
+
+const normalizeJid = v => {
+    if (!v) return ''
+    if (typeof v === 'number') v = String(v)
+    v = (v + '').trim()
+    if (v.startsWith('@')) v = v.slice(1)
+    if (v.endsWith('@g.us')) return v
+    if (v.includes('@s.whatsapp.net')) {
+        const n = toNum(v.split('@')[0])
+        return n ? n + '@s.whatsapp.net' : v
+    }
+    const n = toNum(v)
+    return n ? n + '@s.whatsapp.net' : v
+}
+
+async function getUserInfo(jid, participants = [], conn) {
+    try {
+        const normalizedJid = normalizeJid(jid);
+        if (!normalizedJid) return null;
+
+        let name = '';
+        try {
+            name = await conn.getName(normalizedJid) || '';
+        } catch (e) {
+            name = '';
+        }
+
+        return {
+            jid: normalizedJid,
+            name: name || formatPretty(normalizedJid),
+            number: formatPretty(normalizedJid)
+        };
+    } catch (error) {
+        console.error('Error en getUserInfo:', error);
+        return {
+            jid: normalizeJid(jid),
+            name: formatPretty(jid),
+            number: formatPretty(jid)
+        };
+    }
+}
+
+const handler = async (m, { conn, text, participants }) => {
   try {
     if (!text?.trim() && !m.mentionedJid?.length && !m.quoted) {
-      return conn.reply(m.chat, `
-*👑 Agregar Owner*
-
-• .addowner @usuario [nombre]
-• .addowner <numero> [nombre]
-• (responde a un mensaje) .addowner [nombre]
-
-Nota: agrega como Root Owner (true).`, m, ctxInfo)
+      return conn.reply(m.chat, `> ⓘ \`Uso:\` *addowner @usuario*\n> ⓘ \`Uso:\` *addowner número*\n> ⓘ \`O responde a un mensaje*`, m)
     }
 
-    const targetsAll = await parseUserTargets(m, text, participants, conn)
-    if (!targetsAll.length) return conn.reply(m.chat, '❌ No se encontró usuario válido.', m, ctxErr)
+    const targetsAll = parseUserTargets(text || '', {
+        resolveMentions: true,
+        groupJid: m.chat
+    });
+
+    if (m.mentionedJid && Array.isArray(m.mentionedJid)) {
+        m.mentionedJid.forEach(jid => {
+            if (!targetsAll.includes(jid)) {
+                targetsAll.push(jid);
+            }
+        });
+    }
+
+    if (m.quoted) {
+        const quotedJid = m.quoted.sender;
+        if (quotedJid && !targetsAll.includes(quotedJid)) {
+            targetsAll.push(quotedJid);
+        }
+    }
+
+    if (!targetsAll.length) return conn.reply(m.chat, '> ⓘ \`No se encontró usuario válido\`', m)
     const target = targetsAll[0]
 
     const info = await getUserInfo(target, participants, conn)
     const num = normalizeCore(info.jid)
-    if (!num) return conn.reply(m.chat, '❌ Número inválido.', m, ctxErr)
+    if (!num) return conn.reply(m.chat, '> ⓘ \`Número inválido\`', m)
 
     const already = (Array.isArray(global.owner) ? global.owner : []).some(v => {
       if (Array.isArray(v)) return normalizeCore(v[0]) === num
       return normalizeCore(v) === num
     })
-    if (already) return conn.reply(m.chat, `⚠️ Ya es owner: @${num}`, m, { ...ctxInfo, mentions: [info.jid] })
+    if (already) return conn.reply(m.chat, `> ⓘ \`Ya es owner:\` *@${num}*`, m, { mentions: [info.jid] })
 
-    // Derivar nombre
     let providedName = ''
     if (text?.trim()) {
-      // quitar menciones y números del texto para intentar extraer nombre
       const cleaned = text.replace(/@\d+/g, '').replace(/\+?\d{5,}/g, '').trim()
       providedName = cleaned
     }
     const name = (providedName && providedName.length > 1) ? providedName : (await resolveName(conn, info.jid))
 
-  // Actualizar en memoria (como Root Owner)
     global.owner = Array.isArray(global.owner) ? global.owner : []
-  global.owner.push([num, name, true])
+    global.owner.push([num, name, true])
 
-    // Intentar persistir en config.js
     let persisted = false
     try {
       const __filename = fileURLToPath(import.meta.url)
       const __dirname = path.dirname(__filename)
       const configPath = path.join(__dirname, '..', 'config.js')
-  persisted = await appendOwnerToConfig(configPath, num, name, true)
+      persisted = await appendOwnerToConfig(configPath, num, name, true)
       if (persisted) {
         try { await import(pathToFileURL(configPath).href + `?update=${Date.now()}`) } catch {}
       }
     } catch {}
 
-    const badge = persisted ? (global.done || '✅') : '⚠️'
-    const msg = persisted
-      ? `${global.done || '✅'} Agregado como Root Owner: @${num}\nNombre: ${name}`
-      : `Root Owner agregado en memoria: @${num}\nNombre: ${name}\n${global.warning || '⚠️'} No se pudo guardar en config.js`
-
     const fkontak = await makeFkontak().catch(() => null)
-    return conn.reply(m.chat, msg, fkontak || m, { ...ctxOk, mentions: [info.jid] })
+    
+    if (persisted) {
+      return conn.reply(m.chat, `> ⓘ \`Owner agregado:\` *@${num}*\n> ⓘ \`Nombre:\` *${name}*`, fkontak || m, { mentions: [info.jid] })
+    } else {
+      return conn.reply(m.chat, `> ⓘ \`Owner agregado en memoria:\` *@${num}*\n> ⓘ \`Nombre:\` *${name}*\n> ⓘ \`No se pudo guardar en config.js\``, fkontak || m, { mentions: [info.jid] })
+    }
+    
   } catch (e) {
     console.error('[owner-add] error:', e)
-    return conn.reply(m.chat, '❌ Error al agregar owner: ' + e.message, m, ctxErr)
+    return conn.reply(m.chat, `> ⓘ \`Error:\` *${e.message}*`, m)
   }
 }
 
 handler.help = ['addowner']
 handler.tags = ['owner']
-handler.command = /^(addowner|owneradd|addprop)$/i
+handler.command = /^(addowner)$/i
 handler.group = false
 handler.admin = false
 handler.botAdmin = false
