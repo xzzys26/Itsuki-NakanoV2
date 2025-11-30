@@ -9,37 +9,42 @@ function isValidUrl(url) {
   }
 }
 
-let handler = async (m, { conn, command, args }) => {
+let handler = async (m, { conn, command, args, usedPrefix }) => {
   let link = args[0];
 
   if (!link) {
-    return conn.reply(m.chat, `${emoji} Por favor, ingrese el *enlace de una página web*.`, m);
+    return conn.reply(m.chat, `> ⓘ \`Uso:\` *${usedPrefix + command} url*`, m);
   }
 
   if (!isValidUrl(link)) {
-    return conn.reply(m.chat, `${msm} El enlace proporcionado *no es válido*.`, m);
+    return conn.reply(m.chat, '> ⓘ \`El enlace proporcionado no es válido\`', m);
   }
 
   try {
-    await m.react(rwait);
-    await conn.reply(m.chat, `${emoji2} Generando captura de pantalla de:\n${link}`, m);
+    await m.react('⏳');
+    
+    await conn.reply(m.chat, `> ⓘ \`Generando captura de:\` *${link}*`, m);
 
     let response = await fetch(`https://image.thum.io/get/fullpage/${link}`);
     if (!response.ok) throw new Error(`Error al obtener la captura`);
 
     let buffer = await response.buffer();
 
-    await conn.sendFile(m.chat, buffer, 'screenshot.png', `✅ Captura de *${link}*`, m);
-    await m.react(done);
+    await conn.sendMessage(m.chat, {
+      image: buffer,
+      caption: `> ⓘ \`Captura de:\` *${link}*`
+    }, { quoted: m });
+    
+    await m.react('✅');
 
   } catch (err) {
     console.error(err);
-    await conn.reply(m.chat, `${error} Ocurrió un error al capturar la web.`, m);
-    await m.react(error);
+    await conn.reply(m.chat, `> ⓘ \`Error:\` *${err.message}*`, m);
+    await m.react('❌');
   }
 };
 
-handler.help = ['ssweb <url>', 'ss <url>'];
+handler.help = ['ssweb'];
 handler.tags = ['tools'];
 handler.command = ['ssweb', 'ss'];
 
