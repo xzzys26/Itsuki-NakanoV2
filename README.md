@@ -19,7 +19,7 @@
 
 ## `🎯 Características Principales`
 
-<div align="center">
+      <div align="center">
 
 | 🌟 Función | 🚀 Descripción |
 |------------|----------------|
