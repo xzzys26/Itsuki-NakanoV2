@@ -519,7 +519,7 @@ export async function sendWelcomeOrBye(conn, { jid, userName = 'Usuario', type =
         productImageCount: 1
       },
       businessOwnerJid: who || '0@s.whatsapp.net',
-      caption: `*❄️ ғᴇʟɪᴢ ɴᴀᴠɪᴅᴀᴅ ʙʙʏ*\n*📚 ɢʀᴜᴘᴏ*: ${groupSubject}\n*👥️ ᴍɪᴇᴍʙʀᴏs*: ${totalMembers}\n*📆 ғᴇᴄʜᴀ*: ${date}`.trim(),
+      caption: `*ʜᴏʟᴀ ᴜsᴇʀ ғᴇʟɪᴢ ɴᴀᴠɪᴅᴀᴅ ❄️\n*📚 ɢʀᴜᴘᴏ*: ${groupSubject}\n*👥️ ᴍɪᴇᴍʙʀᴏs*: ${totalMembers}\n*📆 ғᴇᴄʜᴀ*: ${date}`.trim(),
       title: '',
       subtitle: '',
       footer: groupSubject || '',
