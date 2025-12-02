@@ -753,23 +753,33 @@ export async function handler(chatUpdate) {
     const chat = global.db.data.chats[m.chat]
     const settings = global.db.data.settings[this.user.jid]
 
-    // === CORRECCIÓN: DEFINIR isROwner ANTES DE USARLO ===
+    // === CORRECCIÓN CRÍTICA: DEFINIR isROwner ANTES DE USARLO ===
     const ownerNumbers = global.owner || global.roowner || []
-    const isROwner = Array.isArray(ownerNumbers) 
-      ? ownerNumbers.some(owner => {
-          if (typeof owner === 'string') {
-            const cleanOwner = owner.replace(/[^0-9]/g, "") + "@s.whatsapp.net"
-            return cleanOwner === m.sender
+    
+    // FORMA SIMPLE Y EFECTIVA de verificar si es owner
+    let isROwner = false
+    if (Array.isArray(ownerNumbers)) {
+      for (const owner of ownerNumbers) {
+        if (typeof owner === 'string') {
+          // Convertir a formato JID si es necesario
+          let ownerJid = owner
+          if (!owner.includes('@s.whatsapp.net')) {
+            ownerJid = owner.replace(/[^0-9]/g, "") + "@s.whatsapp.net"
           }
-          return false
-        })
-      : false
+          if (ownerJid === m.sender) {
+            isROwner = true
+            break
+          }
+        }
+      }
+    }
 
     const isOwner = isROwner || m.fromMe
 
-    // === AHORA SÍ PUEDES VERIFICAR ROOTOWNER ===
+    // === SISTEMA ROOTOWNER - VERIFICACIÓN ===
+    // Esta es la parte que debe funcionar
     if (chat?.rootowner && !isROwner) {
-      console.log(`🚫 RootOwner activado: Ignorando mensaje de ${m.sender} en ${m.chat}`)
+      console.log(`🚫 RootOwner activado: Ignorando mensaje de ${m.sender}`)
       return // Ignorar completamente el mensaje
     }
 
@@ -805,7 +815,7 @@ export async function handler(chatUpdate) {
       return ''
     })].includes(m.sender)
 
-    if (opts["queque"] && m.text && !(isPrems)) {
+    if (opts && opts["queque"] && m.text && !(isPrems)) {
       const queque = this.msgqueque, time = 1000 * 5
       const previousID = queque[queque.length - 1]
       queque.push(m.id || m.key.id)
@@ -822,9 +832,9 @@ export async function handler(chatUpdate) {
     const ___dirname = path.join(CURRENT_DIR, "./plugins")
 
     const groupMetadata = m.isGroup ? { 
-      ...(conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), 
-      ...(((conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { 
-        participants: ((conn.chats[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ 
+      ...(this.chats?.[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}), 
+      ...(((this.chats?.[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants) && { 
+        participants: ((this.chats?.[m.chat]?.metadata || await this.groupMetadata(m.chat).catch(_ => null) || {}).participants || []).map(p => ({ 
           ...p, 
           id: p.jid, 
           jid: p.jid, 
@@ -840,8 +850,8 @@ export async function handler(chatUpdate) {
       admin: participant.admin 
     }))
 
-    const userGroup = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) === m.sender) : {}) || {}
-    const botGroup = (m.isGroup ? participants.find((u) => conn.decodeJid(u.jid) == this.user.jid) : {}) || {}
+    const userGroup = (m.isGroup ? participants.find((u) => this.decodeJid(u.jid) === m.sender) : {}) || {}
+    const botGroup = (m.isGroup ? participants.find((u) => this.decodeJid(u.jid) == this.user.jid) : {}) || {}
     const isRAdmin = userGroup?.admin == "superadmin" || false
     const isAdmin = isRAdmin || userGroup?.admin == "admin" || false
     const isBotAdmin = botGroup?.admin || false
@@ -868,7 +878,7 @@ export async function handler(chatUpdate) {
         }
       }
 
-      if (!opts["restrict"])
+      if (opts && !opts["restrict"])
         if (plugin.tags && plugin.tags.includes("admin")) {
           continue
         }
@@ -924,7 +934,7 @@ export async function handler(chatUpdate) {
         global.comando = command
 
         if (!isOwners && settings.self) return
-        if ((m.id.startsWith("NJX-") || (m.id.startsWith("BAE5") && m.id.length === 16) || (m.id.startsWith("B24E") && m.id.length === 20))) return
+        if ((m.id && (m.id.startsWith("NJX-") || (m.id.startsWith("BAE5") && m.id.length === 16) || (m.id.startsWith("B24E") && m.id.length === 20)))) return
 
         if (global.db.data.chats[m.chat].primaryBot && global.db.data.chats[m.chat].primaryBot !== this.user.jid) {
           const primaryBotConn = global.conns.find(conn => conn.user.jid === global.db.data.chats[m.chat].primaryBot && conn.ws.socket && conn.ws.socket.readyState !== ws.CLOSED)
@@ -951,7 +961,7 @@ export async function handler(chatUpdate) {
 
           if (name !== "group-banchat.js" && chat?.isBanned && !isROwner) {
             if (!primaryBotId || primaryBotId === botId) {
-              const aviso = `El bot *${global.botname}* está desactivado en este grupo\n\n> ✦ Un *administrador* puede activarlo con el comando:\n> » *${usedPrefix}bot on*`.trim()
+              const aviso = `El bot *${global.botname || 'Bot'}* está desactivado en este grupo\n\n> ✦ Un *administrador* puede activarlo con el comando:\n> » *${usedPrefix}bot on*`.trim()
               await m.reply(aviso)
               return
             }
@@ -1063,7 +1073,7 @@ export async function handler(chatUpdate) {
   } catch (err) {
     console.error(err)
   } finally {
-    if (opts["queque"] && m.text) {
+    if (opts && opts["queque"] && m.text) {
       const quequeIndex = this.msgqueque.indexOf(m.id || m.key.id)
       if (quequeIndex !== -1)
         this.msgqueque.splice(quequeIndex, 1)
@@ -1077,10 +1087,10 @@ export async function handler(chatUpdate) {
     }
 
     try {
-      if (!opts["noprint"]) await (await import("./lib/print.js")).default(m, this)
+      if (!opts || !opts["noprint"]) await (await import("./lib/print.js")).default(m, this)
     } catch (err) {
       console.warn(err)
-      console.log(m.message)
+      if (m && m.message) console.log(m.message)
     }
   }
 }
