@@ -10,7 +10,7 @@ import { createCanvas, loadImage } from '@napi-rs/canvas'
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
 
 // =============================================
-// CORRECCIÓN: SISTEMA GLOBAL FILENAME SIMPLIFICADO
+//  SISTEMA GLOBAL FILENAME SIMPLIFICADO
 // =============================================
 // Solo define si no existen, pero de forma más simple
 if (typeof global.__filename !== 'function') {
