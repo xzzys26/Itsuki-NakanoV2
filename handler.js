@@ -8,6 +8,7 @@ import fetch from "node-fetch"
 import ws from "ws"
 import { createCanvas, loadImage } from '@napi-rs/canvas'
 import { jidNormalizedUser } from '@whiskeysockets/baileys'
+import os from 'os' // Añadido para manejo de directorios temporales del sistema
 
 // =============================================
 //  SISTEMA GLOBAL FILENAME SIMPLIFICADO
@@ -67,8 +68,8 @@ async function loadImageSmart(src) {
   } catch { return null }
 }
 
-// Sistema de estado para welcome - CORREGIDO
-const WELCOME_STATE_FILE = path.join(CURRENT_DIR, '../temp/welcome_state.json')
+// Sistema de estado para welcome - MEJORADO
+const WELCOME_STATE_FILE = path.join(process.cwd(), 'temp/welcome_state.json')
 
 function loadWelcomeState() {
   try {
@@ -84,10 +85,13 @@ function loadWelcomeState() {
 function saveWelcomeState(state) {
   try {
     const tempDir = path.dirname(WELCOME_STATE_FILE)
+    // Asegurarse de que el directorio temp existe
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true })
+      console.log(`📁 Directorio temp creado: ${tempDir}`)
     }
     fs.writeFileSync(WELCOME_STATE_FILE, JSON.stringify(state, null, 2))
+    console.log(`💾 Estado guardado en: ${WELCOME_STATE_FILE}`)
   } catch (error) {
     console.error('Error saving welcome state:', error)
   }
@@ -104,6 +108,7 @@ export function setWelcomeState(jid, enabled) {
   const state = loadWelcomeState()
   state[jid] = enabled
   saveWelcomeState(state)
+  console.log(`⚙️ Welcome ${enabled ? 'activado' : 'desactivado'} para: ${jid}`)
   return enabled
 }
 
@@ -191,7 +196,7 @@ export async function makeCard({ title = 'Bienvenida', subtitle = '', avatarUrl 
   return canvas.toBuffer('image/png')
 }
 
-// Función principal para enviar bienvenidas/despedidas
+// Función principal para enviar bienvenidas/despedidas - CORREGIDA
 export async function sendWelcomeOrBye(conn, { jid, userName = 'Usuario', type = 'welcome', groupName = '', participant }) {
   // VERIFICAR SI EL WELCOME ESTÁ ACTIVADO PARA ESTE GRUPO
   if (!isWelcomeEnabled(jid)) {
@@ -199,8 +204,38 @@ export async function sendWelcomeOrBye(conn, { jid, userName = 'Usuario', type =
     return null
   }
 
-  const tmp = path.join(CURRENT_DIR, '../temp')
-  if (!fs.existsSync(tmp)) fs.mkdirSync(tmp, { recursive: true })
+  // CORRECCIÓN: Crear directorio temp de manera segura
+  let tmpDir = path.join(process.cwd(), 'temp')
+  console.log(`📁 Directorio temporal: ${tmpDir}`)
+  
+  // Asegurarse de que el directorio temp existe
+  if (!fs.existsSync(tmpDir)) {
+    try {
+      fs.mkdirSync(tmpDir, { recursive: true })
+      console.log(`✅ Directorio 'temp' creado exitosamente en: ${tmpDir}`)
+    } catch (mkdirError) {
+      console.error(`❌ Error al crear directorio 'temp':`, mkdirError.message)
+      
+      // Intentar con directorio alternativo
+      tmpDir = path.join(os.tmpdir(), 'whatsapp-bot-temp')
+      console.log(`🔄 Intentando directorio alternativo: ${tmpDir}`)
+      
+      try {
+        if (!fs.existsSync(tmpDir)) {
+          fs.mkdirSync(tmpDir, { recursive: true })
+          console.log(`✅ Directorio alternativo creado: ${tmpDir}`)
+        }
+      } catch (altError) {
+        console.error(`❌ Error al crear directorio alternativo:`, altError.message)
+        // Usar directorio actual como última opción
+        tmpDir = process.cwd()
+        console.log(`⚠️ Usando directorio actual: ${tmpDir}`)
+      }
+    }
+  } else {
+    console.log(`📂 Directorio 'temp' ya existe: ${tmpDir}`)
+  }
+
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)]
   const normalizeNumberFromJid = (jidOrNum = '') => {
     const raw = String(jidOrNum || '')
@@ -268,93 +303,106 @@ export async function sendWelcomeOrBye(conn, { jid, userName = 'Usuario', type =
   } catch {}
   if (!avatarUrl) avatarUrl = 'https://files.catbox.moe/xr2m6u.jpg'
 
-  const buff = await makeCard({ title, subtitle, avatarUrl, bgUrl, badgeUrl })
-  const file = path.join(tmp, `${type}-${Date.now()}.png`)
-  fs.writeFileSync(file, buff)
-
-  const who = participant || ''
-  let realJid = who
-  try { if (typeof conn?.decodeJid === 'function') realJid = conn.decodeJid(realJid) } catch {}
-  try { realJid = jidNormalizedUser(realJid) } catch {}
-  const number = normalizeNumberFromJid(realJid)
-  const taguser = number ? `@${number}` : (userName || 'Usuario')
-
-  let meta = null
-  try { meta = await conn.groupMetadata(jid) } catch {}
-  const totalMembers = Array.isArray(meta?.participants) ? meta.participants.length : 0
-  const groupSubject = meta?.subject || groupName || ''
-  const tipo = type === 'welcome' ? 'Bienvenid@' : 'Despedida'
-  const date = new Date().toLocaleString('es-PE', { 
-    year: 'numeric', 
-    month: '2-digit', 
-    day: '2-digit', 
-    hour12: false, 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  })
-
-  let fkontak = null
   try {
-    const res = await fetch('https://i.postimg.cc/rFfVL8Ps/image.jpg')
-    const thumb2 = Buffer.from(await res.arrayBuffer())
-    fkontak = { 
-      key: { 
-        participant: '0@s.whatsapp.net', 
-        remoteJid: 'status@broadcast', 
-        fromMe: false, 
-        id: 'Halo' 
-      }, 
-      message: { 
-        locationMessage: { 
-          name: `${tipo}`, 
-          jpegThumbnail: thumb2 
-        } 
-      }, 
-      participant: '0@s.whatsapp.net' 
-    }
-  } catch {}
+    const buff = await makeCard({ title, subtitle, avatarUrl, bgUrl, badgeUrl })
+    const file = path.join(tmpDir, `${type}-${Date.now()}.png`)
+    fs.writeFileSync(file, buff)
+    console.log(`🖼️ Imagen ${type} guardada en: ${file}`)
 
-  const productMessage = {
-    product: {
-      productImage: { url: file },
-      productId: '24529689176623820',
-      title: `${tipo}, ᴀʜᴏʀᴀ sᴏᴍᴏs ${totalMembers}`,
-      description: '',
-      currencyCode: 'USD',
-      priceAmount1000: '100000',
-      retailerId: 1677,
-      url: `https://wa.me/${number}`,
-      productImageCount: 1
-    },
-    businessOwnerJid: who || '0@s.whatsapp.net',
-    caption: `*👤ᴜsᴜᴀʀɪᴏ*: ${taguser}\n*📚 ɢʀᴜᴘᴏ*: ${groupSubject}\n*👥️ ᴍɪᴇᴍʙʀᴏs*: ${totalMembers}\n*📆 ғᴇᴄʜᴀ*: ${date}`.trim(),
-    title: '',
-    subtitle: '',
-    footer: groupSubject || '',
-    interactiveButtons: [
-      {
-        name: 'quick_reply',
-        buttonParamsJson: JSON.stringify({
-          display_text: '🌷 ᴍᴇɴᴜ-ɴᴀᴋᴀɴᴏ 🌷',
-          id: '.menu' 
-        })
+    const who = participant || ''
+    let realJid = who
+    try { if (typeof conn?.decodeJid === 'function') realJid = conn.decodeJid(realJid) } catch {}
+    try { realJid = jidNormalizedUser(realJid) } catch {}
+    const number = normalizeNumberFromJid(realJid)
+    const taguser = number ? `@${number}` : (userName || 'Usuario')
+
+    let meta = null
+    try { meta = await conn.groupMetadata(jid) } catch {}
+    const totalMembers = Array.isArray(meta?.participants) ? meta.participants.length : 0
+    const groupSubject = meta?.subject || groupName || ''
+    const tipo = type === 'welcome' ? 'Bienvenid@' : 'Despedida'
+    const date = new Date().toLocaleString('es-PE', { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit', 
+      hour12: false, 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
+
+    let fkontak = null
+    try {
+      const res = await fetch('https://i.postimg.cc/rFfVL8Ps/image.jpg')
+      const thumb2 = Buffer.from(await res.arrayBuffer())
+      fkontak = { 
+        key: { 
+          participant: '0@s.whatsapp.net', 
+          remoteJid: 'status@broadcast', 
+          fromMe: false, 
+          id: 'Halo' 
+        }, 
+        message: { 
+          locationMessage: { 
+            name: `${tipo}`, 
+            jpegThumbnail: thumb2 
+          } 
+        }, 
+        participant: '0@s.whatsapp.net' 
       }
-    ],
-    mentions: who ? [who] : []
+    } catch {}
+
+    const productMessage = {
+      product: {
+        productImage: { url: file },
+        productId: '24529689176623820',
+        title: `${tipo}, ᴀʜᴏʀᴀ sᴏᴍᴏs ${totalMembers}`,
+        description: '',
+        currencyCode: 'USD',
+        priceAmount1000: '100000',
+        retailerId: 1677,
+        url: `https://wa.me/${number}`,
+        productImageCount: 1
+      },
+      businessOwnerJid: who || '0@s.whatsapp.net',
+      caption: `*👤ᴜsᴜᴀʀɪᴏ*: ${taguser}\n*📚 ɢʀᴜᴘᴏ*: ${groupSubject}\n*👥️ ᴍɪᴇᴍʙʀᴏs*: ${totalMembers}\n*📆 ғᴇᴄʜᴀ*: ${date}`.trim(),
+      title: '',
+      subtitle: '',
+      footer: groupSubject || '',
+      interactiveButtons: [
+        {
+          name: 'quick_reply',
+          buttonParamsJson: JSON.stringify({
+            display_text: '🌷 ᴍᴇɴᴜ-ɴᴀᴋᴀɴᴏ 🌷',
+            id: '.menu' 
+          })
+        }
+      ],
+      mentions: who ? [who] : []
+    }
+
+    const mentionId = who ? [who] : []
+    await conn.sendMessage(jid, productMessage, { 
+      quoted: fkontak || undefined, 
+      contextInfo: { mentionedJid: mentionId } 
+    })
+
+    console.log(`✅ ${tipo} enviada para: ${taguser}`)
+
+    // Limpiar archivo temporal después de enviar
+    setTimeout(() => {
+      try { 
+        fs.unlinkSync(file)
+        console.log(`🗑️ Archivo temporal eliminado: ${file}`)
+      } catch (unlinkError) {
+        console.error(`❌ Error al eliminar archivo temporal:`, unlinkError.message)
+      }
+    }, 60000)
+
+    return file
+  } catch (error) {
+    console.error(`❌ Error en sendWelcomeOrBye:`, error)
+    return null
   }
-
-  const mentionId = who ? [who] : []
-  await conn.sendMessage(jid, productMessage, { 
-    quoted: fkontak || undefined, 
-    contextInfo: { mentionedJid: mentionId } 
-  })
-
-  // Limpiar archivo temporal después de enviar
-  setTimeout(() => {
-    try { fs.unlinkSync(file) } catch {}
-  }, 60000)
-
-  return file
 }
 
 // =============================================
