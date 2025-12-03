@@ -11,10 +11,11 @@ import pino from 'pino'
 import { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion, Browsers, jidNormalizedUser } from '@whiskeysockets/baileys'
 import { makeWASocket, protoType, serialize } from './lib/simple.js'
 import config from './config.js'
-// IMPORTACIÓN CORREGIDA - Ahora importamos del handler.js
-import handlerModule from './handler.js'
+// IMPORTACIÓN REMOVIDA - No importamos handler.js aquí
 import { loadDatabase, saveDatabase, DB_PATH } from './lib/db.js'
 import { watchFile } from 'fs'
+
+// ✅ 
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -22,6 +23,12 @@ const phoneUtil = (libPhoneNumber.PhoneNumberUtil || libPhoneNumber.default?.Pho
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+
+// Función auxiliar para __filename global
+global.__filename = function(filename, returnDir = false) {
+  const f = filename ? path.join(__dirname, filename) : __filename
+  return returnDir ? path.dirname(f) : f
+}
 
 global.prefixes = Array.isArray(config.prefix) ? [...config.prefix] : []
 global.owner = Array.isArray(config.owner) ? config.owner : []
@@ -119,21 +126,25 @@ console.log(dbInfo)
 } catch {}
 await loadPlugins()
 
-// IMPORTAR HANDLER CORRECTAMENTE
+// CARGAR HANDLER DESDE SU ARCHIVO SEPARADO
 let handler
-
 try { 
-  // Importar el módulo handler completo
-  const handlerImport = await import('./handler.js')
-
-  // Extraer funciones del handler
-  handler = handlerImport.handler || handlerImport.default?.handler
-
+  // Importar el handler directamente
+  const handlerModule = await import('./handler.js')
+  // Obtener la función handler exportada
+  handler = handlerModule.handler || handlerModule.default?.handler
+  
   if (!handler) {
     throw new Error('No se encontró la función handler en handler.js')
   }
+  
+  console.log(chalk.green('✅ Handler cargado correctamente'))
 } catch (e) { 
   console.error('[Handler] Error importando handler:', e.message)
+  // Si no hay handler, crear uno básico
+  handler = async function() {
+    console.log('[Handler] Handler no disponible')
+  }
 }
 
 try {
@@ -501,4 +512,4 @@ return phoneUtil.isValidNumber(parsed)
 return false
 }
 }
-} // <-- ESTA ES LA LLAVE QUE FALTABA
+} // <-- CIERRE DE LA FUNCIÓN startBot
