@@ -354,38 +354,11 @@ export async function handler(chatUpdate) {
 
         m.exp += Math.ceil(Math.random() * 10)
 
-        // === SISTEMA ANTI-LINK Y ANTI-ARABE - DENTRO DEL HANDLER ===
+        // === SISTEMA ANTI-ARABE - DENTRO DEL HANDLER ===
         try {
             if (m.message && m.key.remoteJid.endsWith('@g.us')) {
                 const text = m.text || ''
                 const sender = m.sender
-
-                // Sistema AntiLink - EXPULSA al que mande enlaces
-                if (chat.antiLink && (text.includes('http://') || text.includes('https://') || text.includes('whatsapp.com') || text.includes('chat.whatsapp.com'))) {
-                    const isAdmin = await isUserAdmin(this, m.chat, sender)
-                    if (!isAdmin) {
-                        // Expulsar al usuario
-                        await this.groupParticipantsUpdate(m.chat, [sender], 'remove')
-
-                        await this.sendMessage(m.chat, { 
-                            text: `╭─「 🚫 *ANTI-LINK ACTIVADO* 🚫 」
-│ 
-│ > ⓘ Usuario expulsado por enviar enlaces
-│ 
-│ 📋 *Información:*
-│ ├ Usuario: @${sender.split('@')[0]}
-│ ├ Razón: Envío de enlaces
-│ ├ Acción: Expulsado del grupo
-│ └ Mensaje: Eliminado
-│ 
-│ 💡 *Para desactivar:*
-│ └ Use el comando .antilink off
-╰─◉`.trim(),
-                            mentions: [sender]
-                        })
-                        return
-                    }
-                }
 
                 // Sistema AntiArabe - EXPULSA números árabes
                 if (chat.antiArabe) {
@@ -451,7 +424,7 @@ export async function handler(chatUpdate) {
                 }
             }
         } catch (error) {
-            console.error('Error en sistemas de expulsión:', error)
+            console.error('Error en sistema anti-arabe:', error)
         }
 
         let usedPrefix
