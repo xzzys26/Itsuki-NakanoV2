@@ -50,7 +50,7 @@ global.etiqueta = '@Leo Xzsy'
 global.gt = '© 𝐂𝐫𝐞𝐚𝐝𝐨 𝐏𝐨𝐫 𝐋𝐞𝐨𝐃𝐞𝐯 𝐈𝐭𝐬𝐮𝐤𝐢-𝐂𝐡𝐚𝐧 𝐓𝐡𝐞 𝐁𝐞𝐬𝐭 𝐁𝐨𝐭𝐬 𝐎𝐟 𝐖𝐡𝐚𝐭𝐬𝐚𝐩𝐩 🤖👑'
 global.me = '🌨️ 𝙸𝚃𝚂𝚄𝙺𝙸 𝙽𝙰𝙺𝙰𝙽𝙾 𝙼𝙴𝚆 𝚄𝙿𝙳𝙰𝚃𝙴 ☃️'
 
-// Contact message - CORREGIDO
+// Contact message
 global.fkontak = { 
   key: { 
     participants: "0@s.whatsapp.net", 
@@ -60,7 +60,7 @@ global.fkontak = {
   }, 
   "message": { 
     "contactMessage": { 
-      "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender ? m.sender.split('@')[0] : '0000000000'}:${m.sender ? m.sender.split('@')[0] : '0000000000'}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` 
+      "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` 
     }
   }, 
   "participant": "0@s.whatsapp.net" 
