@@ -13,16 +13,15 @@ global.__dirname = (url) => dirname(fileURLToPath(url));
 // Configuraciones principales
 global.roowner = ['573187418668']
 global.owner = [
+   ['573133374132', 'YO SOY YO', true],
+   ['50493732693', 'Ado 🐢', true],
+   ['5216671548329', 'Legna', true],
+   ['50496228919', '𝐒𝐨𝐩𝐨𝐫𝐭𝐞 𝐱 𝐒𝐭𝐚𝐟𝐟 𝐈𝐭𝐬𝐮𝐤𝐢 👨🏻‍💻👑', true],
+// son pndjos todos menos Maycol por poco lo es
    ['595972314588', '۪〬.࠭⤿ 👑 ⋅ 𝘿𝙖𝙫𝙞𝙙   𝙭𝙯𝙨𝙮', true],
    ['573187418668', '𝙇𝙚𝙤   𝙭𝙯𝙨𝙮  🦇🩸', true],
    ['5216641784469', 'BrayanOFC', true],
-// son pndjos todos menos David y Leo por poco también son
-   ['573133374132', 'YO SOY YO', true],
-   ['51921826291', '𝐒𝐨𝐲𝐌𝐚𝐲𝐜𝐨𝐥 <𝟑', true],
-   ['50493732693', 'Ado 🐢', true],
-   ['5216671548329', 'Legna', true],
-   ['50496228919', '𝐒𝐨𝐩𝐨𝐫𝐭𝐞 𝐱 𝐒𝐭𝐚𝐟𝐟 𝐈𝐭𝐬𝐮𝐤𝐢 👨🏻‍💻👑', true]
-];
+   ];
 
 global.mods = ['573187418668', '595972314588', '51921826291']
 global.suittag = ['573187418668', '595972314588', '51921826291']
