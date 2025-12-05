@@ -43,10 +43,10 @@ let handler = async (m, { conn }) => {
     // Mensaje del ping
     const pingMessage = `> *ⓘ I T S U K I - P I N G* 
 
-\`Ping :\` ${ping} ms
-\`Velocidad :\` ${speed}
-\`Estado :\` ${status}
-\`Uptime :\` ${uptimeString}`
+> \`*Ping :\*` ${ping} ms
+> \`*Velocidad :\*` ${speed}
+> \`*Estado :\*` ${status}
+* \`*Uptime :\*` ${uptimeString}`
 
     // Enviar resultado
     await conn.reply(m.chat, pingMessage, m)
