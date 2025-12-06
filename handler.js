@@ -92,13 +92,7 @@ const paisesCodigos = {
     'ucrania': ['+380', '380'],
     'rumania': ['+40', '40'],
     'polonia': ['+48', '48'],
-    'mexico': ['+52', '52'],
     'brasil': ['+55', '55'],
-    'argentina': ['+54', '54'],
-    'colombia': ['+57', '57'],
-    'peru': ['+51', '51'],
-    'chile': ['+56', '56'],
-    'venezuela': ['+58', '58']
 }
 
 function detectCountryByNumber(number) {
