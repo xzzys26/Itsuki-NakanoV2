@@ -1,6 +1,6 @@
 import pkg from '@whiskeysockets/baileys'
 const { useMultiFileAuthState, fetchLatestBaileysVersion, Browsers, DisconnectReason, generateWAMessageFromContent, proto, prepareWAMessageMedia } = pkg
-import pino from "pino"
+import pino from "pino";
 import { protoType, serialize, makeWASocket } from '../lib/simple.js'
 import path from 'path'
 import fs from 'fs'
@@ -103,17 +103,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
             // remove from global list
             global.subbots = global.subbots.filter(c => c.id !== userName)
             // remove folder
-            try { 
-              fs.rmSync(folder, { recursive: true, force: true }) 
-            } catch (e) {
-              console.error('Error eliminando carpeta de sesión: ', e)
-            }
-            console.log(`[SUB-BOT ${userName}] Limpiado por falta de autenticación (60s)`)
-          } catch (e) {
-            console.error('Error en limpieza por timeout:', e)
-          }
-        }
-      }, 60000) // 60s
+            try { fs // 60s
 
       sock.ev.on('connection.update', async (update) => {
         try {
@@ -128,27 +118,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
             // --- VERSIÓN ORIGINAL (añadida la reconexión robusta) ---
             // Filtramos y añadimos a global.subbots
-            global.subbots = global.subbots.filter(c => c.id !== userName)
-            global.subbots.push(sock)
-            clearTimeout(initTimeout)
-            
-            // React success
-            try { await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } }) } catch {}
-            
-            try {
-              await sleep(500)
-              await conn.reply(m.chat, '```🧘‍♀️ Ya estas activa como sub-bot en mi Sistema ✅```\n\n> _Si deseas tener más bots así contacta a mi desarrollador._', m)
-            } catch (e) {}
-            
-            console.log(`[SUB-BOT ${userName}] Conectado`)
-          } else if (connection === 'close') {
-            sock.connection = 'close'
-            global.subbots = global.subbots.filter(c => c.id !== userName)
-            
-            const reason = lastDisconnect?.error?.output?.statusCode || lastDisconnect?.error?.output?.payload?.statusCode
-            
-            // if invalid credentials, remove session folder
-            if (reason === DisconnectReason.loggedOut || reason === 401 || reason === 405 || reason === 403) {
+            global.subbots = global.subbots.filter(c => c.id !== user ===401 || reason === 405 || reason === 403) {
               // do not reconnect: remove session folder
               try {
                 fs.rmSync(folder, { recursive: true, force: true })
@@ -234,7 +204,8 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
               header,
               body: proto.Message.InteractiveMessage.Body.fromObject({
                 text: `> *❀ OPCIÓN-CODIGO ❀*
-  
+
+𓂃 ࣪ ִֶָ☾.  
 > 1. 📲 *WhatsApp → Ajustes*  
 > 2. ⛓️‍💥 *Dispositivos vinculados*  
 > 3. 🔐 *Toca vincular*  
@@ -246,7 +217,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 > 🍒 ࣪𓂃 *¡Consejito dale rapidito!* ˚₊‧꒰ა ♡ ໒꒱ ‧₊˚`
               }),
               footer: proto.Message.InteractiveMessage.Footer.fromObject({
-                text: "ᴄᴏᴘɪᴀ ᴇʟ ᴄᴏᴅɪɢᴏ ᴀǫᴜɪ ᴀʙᴀᴊᴏ 🌺"
+                text: "ᴄᴏᴘɪᴀ ᴇʟ ᴄᴏᴅɪɢᴏ ᴀǳɪ ᴀʙᴀᴊᴏ 🌺"
               }),
               nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
                 buttons: [
