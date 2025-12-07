@@ -13,13 +13,13 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
 
   if (global.subbots.length >= 10) {
     await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
-    return conn.reply(m.chat, 'Se ha alcanzado el maximo de subbots permitidos.', m)
+    return conn.reply(m.chat, '> [🌱] 𝙔𝙖 𝙉𝙤 𝙃𝙖𝙮 𝙈𝙖𝙨 𝙀𝙨𝙥𝙖𝙘𝙞𝙤 𝙋𝙖𝙧𝙖 𝙃𝙖𝙘𝙚𝙧𝙩𝙚 𝙎𝙪𝙗-𝘽𝙤𝙩 𝙄𝙣𝙩𝙚𝙣𝙩𝙖𝙡𝙤 𝙉𝙪𝙚𝙫𝙖𝙢𝙚𝙣𝙩𝙚 𝙈𝙖𝙨 𝙏𝙖𝙧𝙙𝙚...', m)
   }
 
   const existing = global.subbots.find(c => c.id === userName && c.connection === 'open')
   if (existing) {
-    await conn.sendMessage(m.chat, { react: { text: '⚠️', key: m.key } })
-    return conn.reply(m.chat, 'Este subbot ya esta conectado.', m)
+    await conn.sendMessage(m.chat, { react: { text: '🤖', key: m.key } })
+    return conn.reply(m.chat, '*𝘠𝘢 𝘌𝘳𝘦𝘴 𝘚𝘶𝘣-𝘣𝘰𝘵 𝘋𝘦 𝘐𝘵𝘴𝘶𝘬𝘪 🟢*', m)
   }
 
   if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true })
@@ -83,7 +83,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
           global.subbots.push(sock)
 
           await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
-          await conn.reply(m.chat, 'Subbot conectado exitosamente', m)
+          await conn.reply(m.chat, '> [🌱] 𝙎𝙪𝙗-𝙗𝙤𝙩 𝘾𝙤𝙣𝙚𝙘𝙩𝙖𝙙𝙤 𝙀𝙭𝙞𝙩𝙤𝙨𝙖𝙢𝙚𝙣𝙩𝙚 » 𝙃𝙚𝙡𝙡𝙤 🌸', m)
         }
 
         if (connection === 'close') {
@@ -92,7 +92,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
           const reason = lastDisconnect?.error?.output?.statusCode || 0
 
           await conn.sendMessage(m.chat, { react: { text: '⚠️', key: m.key } })
-          await conn.reply(m.chat, `Conexion cerrada. Razon: ${reason}`, m)
+          await conn.reply(m.chat, `> [🔴] 𝐂𝐎𝐍𝐄𝐗𝐈𝐎𝐍 𝐂𝐄𝐑𝐑𝐀𝐃𝐀....`, m)
 
           if (reason !== DisconnectReason.loggedOut) {
             setTimeout(() => {
@@ -140,22 +140,22 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
                 text: `🔐 *CÓDIGO DE VINCULACIÓN*\n\n📱 *Instrucciones:*\n1. Abre WhatsApp en tu teléfono\n2. Ve a Ajustes → Dispositivos vinculados\n3. Toca Vincular un dispositivo\n4. Usa este código:\n\n🔢 *Código:* ${rawCode.match(/.{1,4}/g)?.join("-")}\n\n⚠️ *El código expira en 45 segundos*`
               }),
               footer: proto.Message.InteractiveMessage.Footer.fromObject({
-                text: "Selecciona una opción para usar el código"
+                text: "ᴄᴏᴘɪᴀ ᴇʟ ᴄᴏᴅɪɢᴏ ᴀǫᴜɪ ᴀʙᴀᴊᴏ 🌺"
               }),
               nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
                 buttons: [
                   {
                     name: "cta_copy",
                     buttonParamsJson: JSON.stringify({
-                      display_text: "📋 Copiar Código",
+                      display_text: "𝗖𝗼𝗽𝗶𝗮 𝗘𝗹 𝗖𝗼𝗱𝗶𝗴𝗼 📋",
                       copy_code: rawCode
                     })
                   },
                   {
                     name: "cta_url",
                     buttonParamsJson: JSON.stringify({
-                      display_text: "📱 Seguir Canal",
-                      url: "https://whatsapp.com/channel/0029VaYourChannel"
+                      display_text: "𝗖𝗮𝗻𝗮𝗹 𝗢𝗳𝗶𝗰𝗮𝗹 🌷",
+                      url: "https://whatsapp.com/channel/0029VbBvZH5LNSa4ovSSbQ2N"
                     })
                   }
                 ]
@@ -170,7 +170,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
           } catch (err) {
             console.error('Error al obtener pairing code:', err)
             await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
-            await conn.reply(m.chat, `Error: ${err.message}`, m)
+            await conn.reply(m.chat, `*⚙️ Error: ${err.message}*`, m)
           }
         }, 3000)
       }
