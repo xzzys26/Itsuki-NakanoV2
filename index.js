@@ -22,12 +22,6 @@ const __dirname = path.dirname(__filename)
 // DEFINIR _filename aquí para evitar el error
 global._filename = __filename
 
-// --- INICIO DE LA MODIFICACIÓN ESENCIAL ---
-// AÑADE ESTA LÍNEA AQUÍ
-// Inicializa global.conns como un array vacío para almacenar las conexiones de los sub-bots.
-global.conns = global.conns || [];
-// --- FIN DE LA MODIFICACIÓN ---
-
 global.prefixes = Array.isArray(config.prefix) ? [...config.prefix] : []
 global.owner = Array.isArray(config.owner) ? config.owner : []
 global.opts = global.opts && typeof global.opts === 'object' ? global.opts : {}
@@ -370,8 +364,6 @@ async function startBot() {
 
   setTimeout(maybeStartPairingFlow, 2500)
 
-  // ... más código en tu index.js ...
-
   sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect, qr } = update
     if (qr && method === 'qr') {
@@ -398,12 +390,6 @@ async function startBot() {
         const userJid = rawId ? jidNormalizedUser(rawId) : 'desconocido'
         const userName = sock?.user?.name || sock?.user?.verifiedName || 'Desconocido'
         console.log(chalk.green.bold(`[ ✅️ ]  Conectado a: ${userName}`))
-
-        // --- INICIO DE LA MODIFICACIÓN CLAVE ---
-        // Guardar la conexión del bot principal en global.conn
-        global.conn = sock;
-        // --- FIN DE LA MODIFICACIÓN ---
-
         const jid = rawId
         const num = jid.split(':')[0].replace(/[^0-9]/g,'')
         if (num && !config.botNumber && !global.botNumber) {
@@ -432,8 +418,6 @@ async function startBot() {
       }
     }
   })
-
-// ... más código en tu index.js ...
 
   // LISTENER DE ACTUALIZACIONES DE GRUPO (SIN BIENVENIDAS)
   sock.ev.on('group-participants.update', async (ev) => {
