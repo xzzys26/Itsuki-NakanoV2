@@ -129,7 +129,7 @@ const nativeButtons = [
   {
     name: 'cta_url',
     buttonParamsJson: JSON.stringify({ 
-      display_text: '🌷 𝘾𝙖𝙣𝙖𝙡 𝙊𝙛𝙞𝙘𝙞𝙖𝙡', 
+      display_text: '𝗖𝗔𝗡𝗔𝗟 𝗢𝗙𝗜𝗖𝗜𝗔𝗟 🌸', 
       url: 'https://whatsapp.com/channel/0029VbBvZH5LNSa4ovSSbQ2N' 
     })
   }
@@ -184,6 +184,6 @@ try {
 handler.help = ['botlist']
 handler.tags = ['serbot']
 handler.command = ['bots', 'listabots', 'subbots'] 
-handler.rowner = true
+// handler.rowner = true
 
 export default handler
