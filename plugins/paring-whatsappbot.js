@@ -68,7 +68,7 @@ users.forEach((v, index) => {
 const totalUsers = users.length
 const sesionesGuardadas = await info(jadi)
 
-let cap = `# 📚 *Subbots activos : ${totalUsers}/200*\n\n`
+let cap = `# 📚 *Subbots activos : ${totalUsers}/100*\n\n`
 cap += `💾 *Sesiones guardadas:* ${sesionesGuardadas}\n`
 cap += `🟢 *Sesiones activas:* ${totalUsers}\n\n`
 
