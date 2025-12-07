@@ -30,7 +30,6 @@ if (!fs.existsSync("./tmp")) {
   fs.mkdirSync("./tmp");
 }
 
-// Lógica de watchFile y recarga de config
 const CONFIG_PATH = path.join(__dirname, 'config.js')
 watchFile(CONFIG_PATH, async () => {
   try {
@@ -53,7 +52,6 @@ watchFile(CONFIG_PATH, async () => {
   }
 })
 
-// Lógica de carga de plugins
 global.plugins = {}
 global.commandIndex = {}
 async function loadPlugins() {
@@ -67,8 +65,6 @@ async function loadPlugins() {
   const entries = fs.readdirSync(PLUGIN_PATH)
   for (const entry of entries) {
     const entryPath = path.join(PLUGIN_PATH, entry)
-    const fileName = path.basename(entryPath) // Obtenemos el nombre del archivo/carpeta
-
     if (fs.statSync(entryPath).isDirectory()) {
       const files = fs.readdirSync(entryPath).filter(f => f.endsWith('.js'))
       for (const file of files) {
@@ -76,11 +72,6 @@ async function loadPlugins() {
         await importAndIndexPlugin(full)
       }
     } else if (entry.endsWith('.js')) {
-      // ⚠️ CORRECCIÓN DUPLICIDAD: Ignorar paring-whatsapp.js porque se carga por handler.js
-      if (fileName === 'paring-whatsapp.js') {
-        console.log(chalk.yellow(`[Plugins] Ignorando ${fileName} (Es un módulo conector, se carga en handler.js).`));
-        continue; 
-      }
       await importAndIndexPlugin(entryPath)
     }
   }
@@ -126,26 +117,8 @@ try {
   console.log(dbInfo)
 } catch {}
 await loadPlugins()
-
-// --- 🎯 CORRECCIÓN CLAVE: Importación de handler y conector ---
 let handler
-try { 
-  const mod = await import('./handler.js');
-  handler = mod.handler; 
-} catch (e) { 
-  console.error('[Handler] Error importando handler principal:', e.message); 
-}
-
-let startSubBot
-try { 
-  // 🟢 CORRECCIÓN DE RUTA Y ORTOGRAFÍA: Apuntando a './plugins/paring-whatsapp.js'
-  const modSub = await import('./plugins/paring-whatsapp.js'); 
-  startSubBot = modSub.startSubBot; 
-} catch (e) { 
-  // 💡 Muestra el error de importación con la ruta corregida
-  console.error('[SubBot Connector] Error importando startSubBot. Asegúrate de que ./plugins/paring-whatsapp.js exista:', e.message); 
-}
-// --- FIN CORRECCIÓN CLAVE ---
+try { ({ handler } = await import('./handler.js')) } catch (e) { console.error('[Handler] Error importando handler:', e.message) }
 
 try {
   const { say } = cfonts
@@ -189,45 +162,6 @@ async function chooseMethod(authDir) {
 }
 
 const PROCESS_START_AT = Date.now()
-
-// --- Función para cargar Sub-Bots automáticamente ---
-const loadSubBots = async (conn) => {
-    if (!startSubBot) {
-        console.error('❌ startSubBot no está disponible. El sistema de auto-reconexión de sub-bots falló.')
-        return
-    }
-
-    const sessionsDir = path.join(__dirname, 'Sessions/SubBot') 
-
-    if (!fs.existsSync(sessionsDir)) {
-        console.log(chalk.gray('No se encontró el directorio Sessions/SubBot. No hay sub-bots para cargar.'))
-        return
-    }
-
-    try {
-        const subBotFolders = fs.readdirSync(sessionsDir)
-            .filter(file => fs.statSync(path.join(sessionsDir, file)).isDirectory())
-
-        if (subBotFolders.length === 0) {
-            console.log(chalk.gray('No se encontraron sesiones de sub-bots para reactivar.'))
-            return
-        }
-
-        const info = `\n╭─────────────────────────────◉\n│ ${chalk.black.bgYellowBright.bold('   🔄 INICIANDO AUTO-RECONEXIÓN   ')}\n│ 「 🤖 」${chalk.yellow(`Total de Sub-Bots: ${subBotFolders.length}`)}\n╰─────────────────────────────◉\n`
-        console.log(info)
-
-        for (const userName of subBotFolders) {
-            console.log(chalk.cyan(`   → Reconectando sesión de: ${userName}...`))
-            // Se llama a startSubBot. Se pasa 'null' para el inicio automático (sin mensaje de chat).
-            startSubBot(userName, conn, null) 
-        }
-
-    } catch (e) {
-        const errBox = `\n╭─────────────────────────────◉\n│ ${chalk.white.bgRed.bold('     ❌ ERROR AL CARGAR SUB-BOTS    ')}\n│ 「 ⚠️ 」${chalk.yellow('Error:  ')}${chalk.white(e.message || e)}\n╰─────────────────────────────◉\n`
-        console.error(errBox)
-    }
-}
-// --- FIN loadSubBots ---
 
 async function startBot() {
   const authDir = path.join(__dirname, config.sessionDirName || config.sessionName || global.sessions || 'sessions')
@@ -456,11 +390,6 @@ async function startBot() {
         const userJid = rawId ? jidNormalizedUser(rawId) : 'desconocido'
         const userName = sock?.user?.name || sock?.user?.verifiedName || 'Desconocido'
         console.log(chalk.green.bold(`[ ✅️ ]  Conectado a: ${userName}`))
-
-        // --- 🎯 LLAMADA CLAVE: Iniciar la reconexión de Sub-Bots ---
-        await loadSubBots(sock)
-        // --- FIN LLAMADA CLAVE ---
-
         const jid = rawId
         const num = jid.split(':')[0].replace(/[^0-9]/g,'')
         if (num && !config.botNumber && !global.botNumber) {
@@ -490,11 +419,15 @@ async function startBot() {
     }
   })
 
-  // LISTENER DE ACTUALIZACIONES DE GRUPO
+  // LISTENER DE ACTUALIZACIONES DE GRUPO (SIN BIENVENIDAS)
   sock.ev.on('group-participants.update', async (ev) => {
     try {
       const { id, participants, action } = ev || {}
       if (!id || !participants || !participants.length) return
+
+      // Aquí podrías agregar otras funcionalidades de grupo si lo deseas
+      // Pero se ha eliminado el sistema de bienvenida como solicitaste
+
     } catch (e) { 
       console.error('[GroupParticipantsUpdate]', e) 
     }
@@ -530,10 +463,7 @@ global.reload = async (_ev, filename) => {
         }
       } catch {}
     }
-    // ⚠️ Corregido: Si el archivo es el conector, no lo recarga como plugin
-    if (filename !== 'paring-whatsapp.js') {
-        await importAndIndexPlugin(filePath)
-    }
+    await importAndIndexPlugin(filePath)
     console.log(chalk.green(`🍃 Recargado plugin '${filename}'`))
   } catch (e) {
     console.error('[ReloadPlugin]', e.message || e)
