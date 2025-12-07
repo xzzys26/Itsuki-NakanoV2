@@ -706,6 +706,7 @@ let user2 = m.pushName || 'Anónimo'
 let verifyaleatorio = ['registrar', 'reg', 'verificar', 'verify', 'register'].getRandom()
 
 const msg = {
+    retirado: 'Este comando solo lo pueden usar los owners retirados del bot',
     rowner: 'Este comando solo lo puede usar el propietario del bot',
     owner: 'Este comando solo lo puede usar el propietario del bot',
     mods: 'Este comando solo lo puede usar el propietario del bot',
