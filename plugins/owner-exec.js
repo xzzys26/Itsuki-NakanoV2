@@ -5,24 +5,29 @@ const exec = promisify(_exec).bind(cp)
 const handler = async (m, { conn, isOwner, command, text, usedPrefix, args, isROwner }) => {
   if (!isROwner) return
 
-
-  if (!conn?.user || !conn?.user?.id) {
-    console.log('⚠️ conn.user no está definido aún.')
-    return
+  const fullText = m.text || ''
+  const prefix = '$ '
+  
+  if (!fullText.startsWith('$ ')) return
+  
+  const cmdToExecute = fullText.slice(2).trim()
+  
+  if (!cmdToExecute) {
+    return m.reply('Escribe un comando después de $')
   }
 
   const botNumber = conn.user?.id?.split(':')[0]
   const senderNumber = m.sender?.split('@')[0]
   if (botNumber !== senderNumber) {
-    console.log('⚠️ Comando ejecutado desde otra instancia, ignorado.')
+    console.log('Comando desde otra instancia, ignorado')
     return
   }
 
-  m.reply('💫 *Ejecutando orden.*')
+  m.reply('Ejecutando orden')
 
   let o
   try {
-    o = await exec(command.trimStart() + ' ' + text.trimEnd())
+    o = await exec(cmdToExecute)
   } catch (e) {
     o = e
   } finally {
@@ -34,7 +39,7 @@ const handler = async (m, { conn, isOwner, command, text, usedPrefix, args, isRO
 
 handler.help = ['$']
 handler.tags = ['owner']
-handler.customPrefix = /^[$] /
+handler.customPrefix = /^\$ /
 handler.command = new RegExp
 
 export default handler
