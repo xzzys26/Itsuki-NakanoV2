@@ -31,24 +31,24 @@ function dhms(ms) {
 }
 
   const message = users.map((v, index) => `
-    乂 \`Sylph | Subbot : ${index + 1}\`
+    🍃 \`𝗜𝗧𝗦𝗨𝗞𝗜-𝗦𝗜𝗦𝗧𝗘𝗠 | 𝗕𝗢𝗧 𝗟𝗜𝗦𝗧 : ${index + 1}\`
 
-≡ 🌿 \`Tag :\` @${v.user.jid.replace(/[^0-9]/g, '')}
-≡ 🌳 \`Nombre: ${v.user.name || 'Desconocido'}\`
-≡ 🌷 \`Uptime: ${v.uptime ? dhms(Date.now() - v.uptime) : "Desconocido"}\`
-`).join('\n┈──────────────── ꒰ 🍂 ꒱\n');
+> 🌱 \`ᴜsᴇʀ :\` @${v.user.jid.replace(/[^0-9]/g, '')}
+> ✐ \`ɴᴏᴍʙʀᴇ: ${v.user.name || 'Desconocido'}\`
+> ⏳️ \`ᴜᴘᴛɪᴍᴇ: ${v.uptime ? dhms(Date.now() - v.uptime) : "Desconocido"}\`
+`).join('\n┈──────────────── ꒰ 🌟 ꒱\n');
 let warn = `
     乂 INFO :
     
-🌄 El número de subbots activos supera el límite de ${limit} por lo que no se mostrará la lista con los tags.
+> *[🧃] El número de subbots activos supera el límite de ${limit} por lo que no se mostrará la lista con los tags.*
 `
 const totalUsers = users.length;
 const replyMessage = totalUsers > limit ? warn : (message || 'No hay w');
 const cap = `
-≡ 🍁 \`Hello @${m.sender.split('@')[0]}! Below is the list of active subbots on Sylphiette :\`
+💭 \`Hello +${m.sender.split('@')[0]}! Below is the list of active subbots on Itsuki Nakano :\`
 
-≡ 🌱 Sesiones guardadas : ${await info(jadi)}
-≡ 🌺 Sesiones Activas : ${totalUsers || '0'}
+> 💾 Sesiones guardadas : ${await info(jadi)}
+> 🤖 Sesiones Activas : ${totalUsers || '0'}
 
 ${replyMessage.trim()}
  `.trim();
