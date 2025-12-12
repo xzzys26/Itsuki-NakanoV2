@@ -1,70 +1,73 @@
 // plugins/_welcome.js
 
-let handler = async (m, { conn, participants }) => {
-    // Este evento solo se activa cuando hay cambios en los participantes de un grupo
+let handler = async (m, { conn }) => {
+    // 1. Verificar si el evento es una actualización de participantes del grupo
     if (m.type !== 'group-participants.update') return;
 
-    // Obtenemos la configuración del grupo desde la base de datos
+    // 2. Obtener la configuración del grupo
     let chat = global.db.data.chats[m.chat];
 
-    // Si la función de bienvenida está desactivada en este grupo, no hacemos nada
+    // 3. Si la función está desactivada, salir
     if (!chat.welcome) return;
 
-    // Obtenemos los metadatos del grupo (nombre, descripción, participantes, etc.)
-    let groupMetadata = await conn.groupMetadata(m.chat);
-    let groupMembers = groupMetadata.participants;
-    let groupName = groupMetadata.subject;
+    // 4. Obtener metadatos del grupo (esenciales para el nombre del grupo)
+    let groupMetadata;
+    try {
+        groupMetadata = await conn.groupMetadata(m.chat);
+    } catch (e) {
+        console.error("Error al obtener metadatos del grupo:", e);
+        return; // Salir si no se pueden obtener los metadatos
+    }
 
-    // URL de las imágenes para bienvenida y despedida
-    // ¡IMPORTANTE! Debes cambiar estas URLs por las tuyas.
+    const groupName = groupMetadata.subject;
+    const currentMembersLength = groupMetadata.participants.length;
+
+    // URLs de las imágenes
+    // ¡Asegúrate de que estas URLs sean accesibles públicamente!
     const welcomeImageUrl = 'https://cdn.russellxz.click/6ae2181d.jpg'; // URL para bienvenida
     const goodbyeImageUrl = 'https://cdn.russellxz.click/9f98f272.jpg';  // URL para despedida
 
-    // Usamos un 'switch' para manejar las diferentes acciones (agregar o quitar)
-    switch (m.action) {
-        case 'add': {
-            // Acción cuando uno o más usuarios se unen al grupo
-            for (let user of m.participants) {
-                // Obtenemos el nombre del usuario. Si no está en la DB, usa el de WhatsApp.
-                let userName = global.db.data.users[user]?.name || conn.getName(user);
-                
-                // Obtenemos la posición del usuario en la lista de miembros del grupo
-                let userPosition = groupMembers.findIndex(v => v.id === user) + 1;
+    // 5. Manejar las acciones de 'add' y 'remove'
+    for (let user of m.participants) {
+        // Formatear el JID a número para la mención
+        const mentionId = user.split('@')[0];
+        
+        // Obtener el nombre del usuario
+        let userName = global.db.data.users[user]?.name || conn.getName(user);
+        
+        // La mención se crea automáticamente en el objeto 'mentions'
+        const mentionsList = [user]; 
 
-                // Construimos el texto de bienvenida
+        switch (m.action) {
+            case 'add': {
+                // Acción cuando un usuario se une al grupo
                 let welcomeText = `✨ *¡Bienvenido/a a ${groupName}!* ✨\n\n`;
-                welcomeText += `👋 Hola, @${user.split('@')[0]}!\n`;
-                welcomeText += `🎉 Nos alegra que te unas. Eres el/la miembro número *${userPosition}* en el grupo.\n`;
+                welcomeText += `👋 Hola, @${mentionId}!\n`;
+                welcomeText += `🎉 Ahora somos *${currentMembersLength}* miembros.\n`;
                 welcomeText += `📜 Por favor, lee la descripción y respeta las normas.\n\n`;
                 welcomeText += `*¡Disfruta tu estancia!* 🥳`;
 
-                // Enviamos el mensaje con imagen y mención
+                // Enviamos el mensaje con imagen
                 await conn.sendMessage(
                     m.chat,
                     {
                         image: { url: welcomeImageUrl },
                         caption: welcomeText,
-                        mentions: [user] // <-- ¡CLAVE! Esto crea la mención @usuario
+                        mentions: mentionsList
                     },
                     { quoted: m }
                 );
+                break;
             }
-            break;
-        }
 
-        case 'remove': {
-            // Acción cuando uno o más usuarios salen o son eliminados del grupo
-            for (let user of m.participants) {
-                let userName = global.db.data.users[user]?.name || conn.getName(user);
+            case 'remove': {
+                // Acción cuando un usuario sale o es eliminado del grupo
+                // Nota: currentMembersLength ya tiene el conteo post-salida.
                 
-                // Obtenemos la posición que tenía el usuario (antes de que se actualice la lista)
-                // Nota: La posición puede ser menos precisa aquí si se eliminan varios a la vez.
-                let userPosition = groupMembers.findIndex(v => v.id === user) + 1;
-
-                let goodbyeText = `👋 *¡Adiós, @${user.split('@')[0]}!* 👋\n\n`;
-                goodbyeText += `📉 Has salido del grupo *${groupName}*. Eras el/la miembro número *${userPosition}*.\n`;
-                goodbyeText += `🕊️ El grupo ahora tiene ${groupMembers.length} miembros.\n\n`;
-                goodbyeText += `¡Te esperamos pronto!`;
+                let goodbyeText = `👋 *¡Adiós, @${mentionId}!* 👋\n\n`;
+                goodbyeText += `📉 El grupo *${groupName}* pierde a un miembro.\n`;
+                goodbyeText += `🕊️ Ahora somos *${currentMembersLength}* miembros.\n\n`;
+                goodbyeText += `¡Esperamos verte pronto!`;
 
                 // Enviamos el mensaje de despedida
                 await conn.sendMessage(
@@ -72,18 +75,18 @@ let handler = async (m, { conn, participants }) => {
                     {
                         image: { url: goodbyeImageUrl },
                         caption: goodbyeText,
-                        mentions: [user] // <-- ¡CLAVE! Mencionamos al usuario que se va
+                        mentions: mentionsList
                     },
                     { quoted: m }
                 );
+                break;
             }
-            break;
         }
     }
 };
 
 // Indicamos que este handler solo funciona en grupos
-handler.group = true
+handler.group = true;
 
 // No necesita un comando, se activa por un evento
-export default handler
+export default handler;
