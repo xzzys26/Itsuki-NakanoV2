@@ -54,87 +54,7 @@ const detectPrefix = (text, customPrefix = null) => {
     }
   }
 
-  const botNameRegex = /^([\w\s]+)[\/\.!#\-]/
-  const botMatch = text.match(botNameRegex)
-  if (botMatch) {
-    const botName = botMatch[1].trim().toLowerCase()
-    
-    const selfId = this.user.jid
-    const botConfig = global.db.data.settings[selfId] || {}
-    const botNameConfig = (botConfig.namebot2 || '').toLowerCase()
-    
-    const botVariations = []
-    if (botNameConfig) {
-      botVariations.push(botNameConfig)
-      botVariations.push(botNameConfig.split(' ')[0])
-      botVariations.push(botNameConfig.split(' ')[0]?.slice(0, 2))
-      botVariations.push(botNameConfig.split(' ')[0]?.slice(0, 3))
-    }
-    
-    if (botVariations.some(variation => variation && botName === variation.toLowerCase())) {
-      const remainingText = text.slice(botMatch[0].length)
-      
-      for (const prefix of globalPrefixes) {
-        if (remainingText.startsWith(prefix)) {
-          return {
-            match: botMatch[0] + prefix,
-            prefix: prefix,
-            type: 'botname',
-            botName: botName,
-            fullMatch: botMatch[0] + prefix
-          }
-        }
-      }
-    }
-  }
-
   return null
-}
-
-async function handlePrimaryBot(m, conn) {
-  try {
-    const chatData = global.db.data.chats[m.chat] || {}
-    const botprimaryId = chatData.primaryBot
-    const selfId = conn.user.jid
-    
-    if (botprimaryId && botprimaryId !== selfId) {
-      const text = m.text || ''
-      const hasGlobalPrefix = globalPrefixes.some(prefix => text.startsWith(prefix))
-      const hasBotNamePrefix = text.match(/^([\w\s]+)[\/\.!#\-]/)
-      
-      if (hasGlobalPrefix || hasBotNamePrefix) {
-        const primaryConn = global.conns?.find(conn =>
-          conn.user.jid === botprimaryId &&
-          conn.ws?.socket?.readyState !== ws.CLOSED
-        )
-
-        let primaryInGroup = false
-        if (m.isGroup) {
-          try {
-            const groupMetadata = await conn.groupMetadata(m.chat).catch(() => null)
-            const participants = groupMetadata?.participants || []
-            primaryInGroup = participants.some(p => 
-              p.id === botprimaryId || 
-              p.jid === botprimaryId || 
-              this.decodeJid(p.id) === botprimaryId
-            )
-          } catch (error) {
-            console.error('Error verificando bot primario en grupo:', error)
-          }
-        }
-
-        const isPrimarySelf = botprimaryId === selfId
-
-        if ((primaryConn && primaryInGroup) || isPrimarySelf) {
-          console.log(`[SUB-BOT] Redirigiendo comando a bot primario: ${botprimaryId}`)
-          return true
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Error en handlePrimaryBot:', error)
-  }
-  return false
 }
 
 const paisesCodigos = {
@@ -254,10 +174,6 @@ try {
 m = smsg(this, m) || m
 if (!m) return
 m.exp = 0
-
-const shouldRedirect = await handlePrimaryBot(m, this)
-if (shouldRedirect) return
-
 try {
 let user = global.db.data.users[m.sender]
 if (typeof user !== "object") global.db.data.users[m.sender] = {}
@@ -324,8 +240,6 @@ if (!("rootowner" in chat)) chat.rootowner = false
 if (!("adminmode" in chat)) chat.adminmode = false
 if (!("prefix" in chat)) chat.prefix = null
 if (!("prefixes" in chat)) chat.prefixes = []
-if (!("primaryBot" in chat)) chat.primaryBot = null
-if (!("botConfig" in chat)) chat.botConfig = {}
 
 } else global.db.data.chats[m.chat] = {
 isBanned: false,
@@ -346,9 +260,7 @@ paisesBloqueados: [],
 rootowner: false,
 adminmode: false,
 prefix: null,
-prefixes: [],
-primaryBot: null,
-botConfig: {}
+prefixes: []
 
 }
 let settings = global.db.data.settings[this.user.jid]
@@ -356,13 +268,9 @@ if (typeof settings !== "object") global.db.data.settings[this.user.jid] = {}
 if (settings) {
 if (!("self" in settings)) settings.self = false
 if (!("jadibotmd" in settings)) settings.jadibotmd = true
-if (!("namebot2" in settings)) settings.namebot2 = 'Diamond'
-if (!("prefijo" in settings)) settings.prefijo = ['.', ',', '!', '#']
 } else global.db.data.settings[this.user.jid] = {
 self: false,
-jadibotmd: true,
-namebot2: 'Diamond',
-prefijo: ['.', ',', '!', '#']
+jadibotmd: true
 }} catch (e) {
 console.error(e)
 }
@@ -573,19 +481,6 @@ if (plugin.tags && plugin.tags.includes("admin")) {
 continue
 }
 
-const selfId = this.user.jid
-const botSettings = global.db.data.settings[selfId] || {}
-const botPrefixes = Array.isArray(botSettings.prefijo) ? botSettings.prefijo : [botSettings.prefijo || '.']
-const botName = botSettings.namebot2 || 'Diamond'
-
-const botNameVariations = []
-if (botName) {
-  botNameVariations.push(botName.toLowerCase())
-  botNameVariations.push(botName.split(' ')[0].toLowerCase())
-  botNameVariations.push(botName.split(' ')[0].slice(0, 2).toLowerCase())
-  botNameVariations.push(botName.split(' ')[0].slice(0, 3).toLowerCase())
-}
-
 const chatPrefixes = chat?.prefixes || []
 const chatPrefix = chat?.prefix || null
 
@@ -598,18 +493,15 @@ if (chatPrefix) {
     allPrefixes = [chatPrefix, ...allPrefixes]
 }
 
-allPrefixes = [...allPrefixes, ...botPrefixes, ...globalPrefixes]
+allPrefixes = [...allPrefixes, ...globalPrefixes]
 
 allPrefixes = [...new Set(allPrefixes)]
 
-const prefixMatch = detectPrefix.call(this, m.text || '', allPrefixes)
+const prefixMatch = detectPrefix(m.text || '', allPrefixes)
 
 let match
 if (prefixMatch) {
     match = [prefixMatch.prefix]
-    if (prefixMatch.type === 'botname' && prefixMatch.fullMatch) {
-      m.text = m.text.replace(prefixMatch.fullMatch, prefixMatch.prefix)
-    }
 } else {
     const strRegex = (str) => String(str || '').replace(/[|\\{}()[\]^$+*?.]/g, "\\$&")
     const pluginPrefix = plugin.customPrefix || this.prefix || global.prefix
@@ -804,7 +696,7 @@ const msg = {
     mods: '*\˙˚ʚ₍ ᐢ.🍃.ᐢ ₎ɞ˚ ᥱs𝗍ᥱ ᥴ᥆mᥲᥒძ᥆ s᥆ᥣ᥆ sᥱ ⍴ᥙᥱძᥱ ᥙsᥲr ⍴᥆r ᥱᥣ ⍴r᥆⍴іᥱ𝗍ᥲrі᥆ ძᥱᥣ ᑲ᥆𝗍.\*',
     premium: '*\˙˚ʚ₍ ᐢ.💎.ᐢ ₎ɞ˚ ᥱs𝗍ᥱ ᥴ᥆mᥲᥒძ᥆ s᥆ᥣ᥆ sᥱ ⍴ᥙᥱძᥱ ᥙ𝗍іᥣіzᥲr ⍴᥆r ᥙsᥙᥲrі᥆s ⍴rᥱmіᥙm, ᥡ ⍴ᥲrᥲ mі ᥴrᥱᥲძ᥆r.\*',
     group: '*\˙˚ʚ₍ ᐢ.📚.ᐢ ₎ɞ˚ ᥱs𝗍ᥱ ᥴ᥆mᥲᥒძ᥆ s᥆ᥣ᥆ sᥱ ⍴ᥙᥱძᥱ ᥙsᥲr ᥱᥒ grᥙ⍴᥆s.\`*',
-    private: '*\˙˚ʚ₍ ᐢ.📲.ᐢ ₎ɞ˚ ᥱs𝗍ᥱ ᥴ᥆mᥲᥒძ᥆ s᥆ᥣ᥆ sᥱ ⍴ᥙᥱძᥱ ᥙsᥲr ᥲᥴһᥲ𝗍 ⍴rі᥎ᥲძ᥆ ძᥱᥣ ᑲ᥆𝗍.\*',
+    private: '*\˙˚ʚ₍ ᐢ.📲.ᐢ ₎ɞ˚ ᥱs𝗍ᥱ ᥴ᥆mᥲᥒძ᥆ s᥆ᥣ᥆ sᥱ ⍴ᥙᥱძᥱ ᥙsᥲr ᥲᥣ ᥴһᥲ𝗍 ⍴rі᥎ᥲძ᥆ ძᥱᥣ ᑲ᥆𝗍.\*',
     admin: '*\˙˚ʚ₍ ᐢ.🔱.ᐢ ₎ɞ˚ ᥱs𝗍ᥱ ᥴ᥆mᥲᥒძ᥆ s᥆ᥣ᥆ sᥱs ⍴ᥲrᥲ ᥲძmіᥒs ძᥱᥣ grᥙ⍴᥆.\`*',
     botAdmin: '*\˙˚ʚ₍ ᐢ.🌟.ᐢ ₎ɞ˚ ⍴ᥲrᥲ ⍴᥆ძᥱr ᥙsᥲr ᥱs𝗍ᥱ ᥴ᥆mᥲᥒძ᥆ ᥱs ᥒᥱᥴᥱsᥲrіᥲr 𝗊ᥙᥱ ᥡ᥆ sᥱᥲ ᥲძmіᥒ.\*',
     unreg: '*\˙˚ʚ₍ ᐢ.📋.ᐢ ₎ɞ˚ ᥒᥱᥴᥱsі𝗍ᥲs ᥱs𝗍ᥲr rᥱgіs𝗍rᥲძ᥆(ᥲ) ⍴ᥲrᥲ ᥙsᥲr ᥱs𝗍ᥱ ᥴ᥆mᥲᥒძ᥆, ᥱsᥴrіᑲᥲr #rᥱg ⍴ᥲrᥲ rᥱgіs𝗍rᥲr𝗍ᥱ.\*',
