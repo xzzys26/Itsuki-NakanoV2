@@ -1,11 +1,42 @@
 import ws from 'ws'
+import pkg from '@whiskeysockets/baileys'
+const { DisconnectReason, generateWAMessageFromContent, proto, prepareWAMessageMedia } = pkg
 import fs from "fs/promises"
 import path from 'path'
 
+async function makeFkontak() {
+  try {
+    const { default: fetch } = await import('node-fetch')
+    const res = await fetch('https://cdn.russellxz.click/a1d42213.jpg')
+    const thumb2 = Buffer.from(await res.arrayBuffer())
+    return {
+      key: { 
+        participants: '0@s.whatsapp.net', 
+        remoteJid: 'status@broadcast', 
+        fromMe: false, 
+        id: 'Halo' 
+      },
+      message: { 
+        locationMessage: { 
+          name: '🌷 𝗟𝗶𝘀𝘁𝗮 𝗱𝗲 𝗦𝘂𝗯𝗯𝗼𝘁𝘀 𝗔𝗰𝘁𝗶𝘃𝗼𝘀', 
+          jpegThumbnail: thumb2 
+        } 
+      },
+      participant: '0@s.whatsapp.net'
+    }
+  } catch {
+    return undefined
+  }
+}
+
 let handler = async(m, { usedPrefix, conn, text }) => {
+try { await conn.sendMessage(m.chat, { react: { text: '🕑', key: m.key } }) } catch {}
+
 const limit = 20
 
 const users = [...new Set([...global.subbots.filter((conn) => conn.user && conn.ws?.socket && conn.ws.socket.readyState !== ws.CLOSED).map((conn) => conn)])];
+
+try { await conn.sendMessage(m.chat, { react: { text: '🤖', key: m.key } }) } catch {}
 
 function dhms(ms) {
   var segundos = Math.floor(ms / 1000);
@@ -76,7 +107,7 @@ const getBotsFromFolder = (folderName) => {
       const credsPath = path.join(folderPath, dir, 'creds.json')
       return fs.existsSync(credsPath)
     })
-    .map((id) => id.replace(/\D/g, '')) // Normaliza a solo números
+    .map((id) => id.replace(/\D/g, ''))
 }
 const categorizedBots = { Owner: [], Sub: [] }
 
@@ -130,6 +161,62 @@ if (totalUsers > 0) {
 }
 
 const mentions = users.map(v => v.user.jid)
+
+const fkontak = await makeFkontak()
+
+try { await conn.sendMessage(m.chat, { react: { text: '✅️', key: m.key } }) } catch {}
+
+const nativeButtons = [
+  {
+    name: 'cta_url',
+    buttonParamsJson: JSON.stringify({ 
+      display_text: '𝗖𝗔𝗡𝗔𝗟 𝗢𝗙𝗜𝗖𝗜𝗔𝗟 🌸', 
+      url: 'https://whatsapp.com/channel/0029VbBvZH5LNSa4ovSSbQ2N' 
+    })
+  }
+]
+
+try {
+  const imageUrl = "https://cdn.russellxz.click/a1d42213.jpg"
+  const media = await prepareWAMessageMedia({ image: { url: imageUrl } }, { upload: conn.waUploadToServer })
+
+  const header = proto.Message.InteractiveMessage.Header.fromObject({
+    hasMediaAttachment: true,
+    imageMessage: media.imageMessage
+  })
+
+  const interactiveMessage = proto.Message.InteractiveMessage.fromObject({
+    body: proto.Message.InteractiveMessage.Body.fromObject({ text: cap }),
+    header,
+    nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.fromObject({
+      buttons: nativeButtons
+    })
+  })
+
+  const msg = generateWAMessageFromContent(m.chat, { interactiveMessage }, { 
+    userJid: conn.user.jid, 
+    quoted: fkontak
+  })
+  await conn.relayMessage(m.chat, msg.message, { messageId: msg.key.id })
+
+} catch (e) {
+  console.error('❌ Error al enviar mensaje interactivo:', e)
+  await conn.sendMessage(m.chat, {
+    text: cap, 
+    mentions: mentions,
+    contextInfo: {
+      mentionedJid: mentions,
+      externalAdReply: {
+        title: "🤖 LISTA DE SUBBOTS ACTIVOS",
+        mediaType: 1,
+        previewType: 0,
+        renderLargerThumbnail: true,
+        thumbnail: await (await fetch("https://cdn.russellxz.click/a1d42213.jpg")).buffer(),
+        sourceUrl: ''
+      }
+    }
+  }, { quoted: fkontak || m })
+}
 }
 
 handler.help = ['botlist']
